@@ -3,7 +3,11 @@
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
 	import { tick } from 'svelte';
-	import { APP_CURTAIN_SESSION_KEY, skipHomeLoadCurtain } from '$lib/appLoadCurtain';
+	import {
+		isDismissedInSession,
+		persistDismissedFlag,
+		skipHomeLoadCurtain
+	} from '$lib/appLoadCurtain';
 
 	type TileState = {
 		left: number;
@@ -266,11 +270,7 @@
 	}
 
 	function finishDismiss() {
-		try {
-			sessionStorage.setItem(APP_CURTAIN_SESSION_KEY, '1');
-		} catch {
-			/* ignore */
-		}
+		persistDismissedFlag();
 		show = false;
 		exiting = false;
 		if (failsafeId !== null) {
@@ -457,22 +457,12 @@
 
 	$effect.pre(() => {
 		if (!browser) return;
-		let dismissed = false;
-		try {
-			dismissed = sessionStorage.getItem(APP_CURTAIN_SESSION_KEY) === '1';
-		} catch {
-			dismissed = false;
-		}
-		if (dismissed) {
+		if (isDismissedInSession()) {
 			show = false;
 			return;
 		}
 		if (skipHomeLoadCurtain() && isHomePath(page.url.pathname)) {
-			try {
-				sessionStorage.setItem(APP_CURTAIN_SESSION_KEY, '1');
-			} catch {
-				/* ignore */
-			}
+			persistDismissedFlag();
 			show = false;
 			queueMicrotask(() => {
 				window.dispatchEvent(new CustomEvent('holalara:curtain-dismissed'));

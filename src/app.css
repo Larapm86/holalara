@@ -253,11 +253,13 @@ html[data-custom-cursor] [contenteditable='true'] {
 	animation: none !important;
 }
 
-/* Same entrance timing as desktop on viewports that use pageShellEntrance kick (≤1024px) */
+/* No shell “loading” fade on tablet/phone — content should appear immediately */
 @media (max-width: 1024px) {
 	.page-shell {
-		-webkit-animation: page-shell-enter 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
-		animation: page-shell-enter 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+		-webkit-animation: none;
+		animation: none;
+		opacity: 1;
+		transform: none;
 	}
 }
 
@@ -471,10 +473,9 @@ html[data-custom-cursor] [contenteditable='true'] {
 /*
  * /index — cols 6–14 with site subgrid; row rhythm matches home (spacer band + one row per line).
  * Do not use display:contents on <ul> — in several engines <li> never becomes a grid item and all lines collapse.
- * Rows: section = [nav spacer][list block]; each <li> is its own row inside the list grid.
- * Client label is inline immediately after each case study title (same flow; block aligns with Index at col 6).
+ * Rows: #index = [nav spacer][.index-section]; each <li.cs-item> is its own row inside the list grid.
  */
-.page-main.page-main--route .page-main__slot .index-cs {
+.page-main.page-main--route .page-main__slot #index {
 	grid-column: 6 / -1;
 	min-width: 0;
 	display: grid;
@@ -484,14 +485,25 @@ html[data-custom-cursor] [contenteditable='true'] {
 	align-content: start;
 }
 
-.page-main.page-main--route .page-main__slot .index-cs__nav-spacer {
+.page-main.page-main--route .page-main__slot #index .index-nav-spacer {
 	grid-column: 1 / -1;
 	grid-row: 1;
 	min-height: var(--page-main-row-height);
 	pointer-events: none;
 }
 
-.page-main.page-main--route .page-main__slot .index-cs__list {
+.page-main.page-main--route .page-main__slot #index .index-section {
+	grid-column: 1 / -1;
+	grid-row: 2;
+	min-width: 0;
+	display: grid;
+	grid-template-columns: subgrid;
+	grid-template-rows: auto 1fr;
+	row-gap: var(--grid-gap);
+	align-content: start;
+}
+
+.page-main.page-main--route .page-main__slot #index .cs-list {
 	display: grid;
 	grid-template-columns: subgrid;
 	grid-column: 1 / -1;
@@ -504,7 +516,7 @@ html[data-custom-cursor] [contenteditable='true'] {
 	align-content: start;
 }
 
-.page-main.page-main--route .page-main__slot .index-cs__item {
+.page-main.page-main--route .page-main__slot #index .cs-item {
 	display: grid;
 	grid-template-columns: subgrid;
 	grid-column: 1 / -1;
@@ -515,24 +527,28 @@ html[data-custom-cursor] [contenteditable='true'] {
 }
 
 @supports not (grid-template-columns: subgrid) {
-	.page-main.page-main--route .page-main__slot .index-cs {
+	.page-main.page-main--route .page-main__slot #index {
 		display: block;
 		padding-top: calc(var(--page-main-row-height) + var(--grid-gap));
 		grid-template-rows: none;
 		grid-auto-rows: unset;
 	}
 
-	.page-main.page-main--route .page-main__slot .index-cs__nav-spacer {
+	.page-main.page-main--route .page-main__slot #index .index-nav-spacer {
 		display: none;
 	}
 
-	.page-main.page-main--route .page-main__slot .index-cs__list {
+	.page-main.page-main--route .page-main__slot #index .index-section {
+		display: block;
+	}
+
+	.page-main.page-main--route .page-main__slot #index .cs-list {
 		display: flex;
 		flex-direction: column;
 		gap: var(--grid-gap);
 	}
 
-	.page-main.page-main--route .page-main__slot .index-cs__item {
+	.page-main.page-main--route .page-main__slot #index .cs-item {
 		display: block;
 		min-height: 0;
 	}
@@ -544,27 +560,31 @@ html[data-custom-cursor] [contenteditable='true'] {
 }
 
 @media (max-width: 1024px) {
-	.page-main.page-main--route .page-main__slot .index-cs,
+	.page-main.page-main--route .page-main__slot #index,
 	.page-main.page-main--route .page-main__slot .about-page {
 		grid-column: 1 / -1;
 	}
 
-	.page-main.page-main--route .page-main__slot .index-cs {
+	.page-main.page-main--route .page-main__slot #index {
 		display: block;
 		padding-top: calc(var(--page-main-row-height) + var(--grid-gap));
 	}
 
-	.page-main.page-main--route .page-main__slot .index-cs__nav-spacer {
+	.page-main.page-main--route .page-main__slot #index .index-nav-spacer {
 		display: none;
 	}
 
-	.page-main.page-main--route .page-main__slot .index-cs__list {
+	.page-main.page-main--route .page-main__slot #index .index-section {
+		display: block;
+	}
+
+	.page-main.page-main--route .page-main__slot #index .cs-list {
 		display: flex;
 		flex-direction: column;
 		gap: var(--grid-gap);
 	}
 
-	.page-main.page-main--route .page-main__slot .index-cs__item {
+	.page-main.page-main--route .page-main__slot #index .cs-item {
 		display: block;
 		min-height: 0;
 	}

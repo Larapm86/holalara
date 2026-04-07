@@ -1,5 +1,9 @@
 import type { Action } from 'svelte/action';
-import { APP_CURTAIN_SESSION_KEY, waitForInitialCurtainHome } from '$lib/appLoadCurtain';
+import {
+	APP_CURTAIN_SESSION_KEY,
+	skipHomeLoadCurtain,
+	waitForInitialCurtainHome
+} from '$lib/appLoadCurtain';
 import { browser } from '$app/environment';
 import { tick } from 'svelte';
 
@@ -14,7 +18,6 @@ function whenVideoReady(v: HTMLVideoElement): Promise<void> {
 	});
 }
 
-/** Fires once dimensions/duration are known — much earlier than `loadeddata` on large .mov files. */
 function whenVideoMetadataReady(v: HTMLVideoElement): Promise<void> {
 	return new Promise((resolve) => {
 		if (v.readyState >= HTMLMediaElement.HAVE_METADATA) resolve();
@@ -26,11 +29,6 @@ function whenVideoMetadataReady(v: HTMLVideoElement): Promise<void> {
 	});
 }
 
-/**
- * Default: `loadedmetadata` — aligns with Lottie strip panels (P2/P4) instead of waiting for
- * `loadeddata` (first decoded frame), which is much later on large .mov files.
- * Opt in to full decode: `data-media-reveal="loadeddata"` on the `<video>`.
- */
 function whenVideoRevealReady(v: HTMLVideoElement): Promise<void> {
 	if (v.dataset.mediaReveal === 'loadeddata') return whenVideoReady(v);
 	return whenVideoMetadataReady(v);
@@ -58,7 +56,6 @@ function collectLoaders(node: HTMLElement): Promise<void>[] {
 		loaders.push(whenVideoRevealReady(v));
 	}
 	for (const img of node.querySelectorAll('img')) {
-		/* Corner badge / chrome — must not delay the main masked reveal (e.g. UX maturity WHO stamp). */
 		if (img.closest('.page-main__placeholder-4-corner')) continue;
 		loaders.push(whenImgReady(img));
 	}
@@ -68,22 +65,15 @@ function collectLoaders(node: HTMLElement): Promise<void>[] {
 	return loaders;
 }
 
-/** Lets the browser paint the initial “not loaded” state so the CSS transform transition can run. */
+/** Two rAFs so the “not loaded” translate state paints before `data-media-loaded` (desktop reveal). */
 function afterPaint(): Promise<void> {
 	return new Promise<void>((resolve) => {
 		requestAnimationFrame(() => {
 			requestAnimationFrame(() => {
-				/*
-				 * Narrow + touch: two rAFs are enough; a third frame added noticeable lag on iOS.
-				 * Narrow + fine pointer: keep a third frame — WebKit on desktop small windows can
-				 * skip painting translateY(108%) before reveal without it.
-				 */
-				if (browser && window.matchMedia('(max-width: 900px)').matches) {
-					if (window.matchMedia('(pointer: coarse)').matches) {
-						resolve();
-					} else {
-						requestAnimationFrame(() => resolve());
-					}
+				const narrow = browser && window.matchMedia('(max-width: 900px)').matches;
+				const coarse = browser && window.matchMedia('(pointer: coarse)').matches;
+				if (narrow && !coarse) {
+					requestAnimationFrame(() => resolve());
 				} else {
 					resolve();
 				}
@@ -93,46 +83,67 @@ function afterPaint(): Promise<void> {
 }
 
 /**
- * Sets `data-media-loaded` on the node when nested videos, images, and Lottie instances are ready.
- * Pair with CSS: `.page-main__cs-link` / `.page-main__placeholder-*` get `overflow: hidden`; first child
- * slides up from below (`translateY`) when `data-media-loaded` is set (masked reveal).
+ * One-frame handoff: `[data-media-loaded-noanim]` disables the slide transition on first paint,
+ * then we drop the flag (see app.css).
+ */
+function markLoadedNoAnim(...elements: HTMLElement[]): void {
+	for (const el of elements) {
+		el.setAttribute('data-media-loaded-noanim', '');
+		el.setAttribute('data-media-loaded', '');
+	}
+	requestAnimationFrame(() => {
+		requestAnimationFrame(() => {
+			for (const el of elements) el.removeAttribute('data-media-loaded-noanim');
+		});
+	});
+}
+
+async function afterLoadersResolve(
+	node: HTMLElement,
+	cancelled: () => boolean,
+	finish: () => Promise<void>
+): Promise<void> {
+	await tick();
+	await new Promise<void>((r) => requestAnimationFrame(() => r()));
+	if (cancelled()) return;
+
+	let loaders = collectLoaders(node);
+	if (loaders.length === 0) {
+		await new Promise<void>((r) => requestAnimationFrame(() => r()));
+		if (cancelled()) return;
+		loaders = collectLoaders(node);
+	}
+	if (loaders.length === 0) {
+		await finish();
+		return;
+	}
+	try {
+		await Promise.all(loaders);
+	} catch {
+		/* still reveal */
+	}
+	if (!cancelled()) await finish();
+}
+
+/**
+ * Sets `data-media-loaded` on the host when nested videos, images, and Lottie instances are ready.
  */
 export const mediaLoadReveal: Action<HTMLElement> = (node) => {
 	let cancelled = false;
+	const isCancelled = () => cancelled;
 
 	const finish = async () => {
 		if (cancelled) return;
+		if (skipHomeLoadCurtain()) {
+			markLoadedNoAnim(node);
+			return;
+		}
 		await afterPaint();
 		if (cancelled) return;
 		node.setAttribute('data-media-loaded', '');
 	};
 
-	void (async () => {
-		await tick();
-		await new Promise<void>((r) => requestAnimationFrame(() => r()));
-
-		if (cancelled) return;
-
-		let loaders = collectLoaders(node);
-
-		if (loaders.length === 0) {
-			await new Promise<void>((r) => requestAnimationFrame(() => r()));
-			if (cancelled) return;
-			loaders = collectLoaders(node);
-		}
-
-		if (loaders.length === 0) {
-			await finish();
-			return;
-		}
-
-		try {
-			await Promise.all(loaders);
-		} catch {
-			/* still reveal to avoid stuck state */
-		}
-		if (!cancelled) await finish();
-	})();
+	void afterLoadersResolve(node, isCancelled, finish);
 
 	return {
 		destroy() {
@@ -149,38 +160,22 @@ function getStripRevealHosts(placeholders: HTMLElement): HTMLElement[] {
 	return [...row, ...ux];
 }
 
-function markHostsLoadedInstant(hosts: HTMLElement[]): void {
-	for (const h of hosts) {
-		h.setAttribute('data-media-loaded-noanim', '');
-		h.setAttribute('data-media-loaded', '');
-	}
-	requestAnimationFrame(() => {
-		requestAnimationFrame(() => {
-			for (const h of hosts) h.removeAttribute('data-media-loaded-noanim');
-		});
-	});
-}
-
 /**
- * Home strip (P1–P4): one gate for all tiles — wait for every Lottie + video in the placeholders
- * subtree, then set `data-media-loaded` on all four links together so the masked reveal runs in sync.
+ * Home strip (P1–P4): one gate for loaders + optional first-visit curtain, then synced `data-media-loaded`.
  */
 export const stripMediaLoadReveal: Action<HTMLElement> = (node) => {
 	let cancelled = false;
-	let curtainRunThisPass = false;
+	const isCancelled = () => cancelled;
 
+	let firstVisitCurtainHandoff = false;
 	if (browser) {
 		try {
-			curtainRunThisPass = sessionStorage.getItem(APP_CURTAIN_SESSION_KEY) !== '1';
+			firstVisitCurtainHandoff = sessionStorage.getItem(APP_CURTAIN_SESSION_KEY) !== '1';
 		} catch {
-			curtainRunThisPass = false;
+			firstVisitCurtainHandoff = false;
 		}
-		if (curtainRunThisPass) {
-			/*
-			 * Prevent a one-frame drop-out when the first-load curtain hands off to Home:
-			 * keep strip hosts in loaded state from the start of this pass.
-			 */
-			markHostsLoadedInstant(getStripRevealHosts(node));
+		if (firstVisitCurtainHandoff) {
+			markLoadedNoAnim(...getStripRevealHosts(node));
 		}
 	}
 
@@ -188,11 +183,11 @@ export const stripMediaLoadReveal: Action<HTMLElement> = (node) => {
 		if (cancelled) return;
 		await waitForInitialCurtainHome();
 		if (cancelled) return;
-		if (curtainRunThisPass) {
-			/*
-			 * First home load: AppLoadCurtain already animates tiles to final positions.
-			 * Keep curtain/load timing gate, but avoid replaying strip reveal.
-			 */
+		if (firstVisitCurtainHandoff) {
+			return;
+		}
+		if (skipHomeLoadCurtain()) {
+			markLoadedNoAnim(...getStripRevealHosts(node));
 			return;
 		}
 		await afterPaint();
@@ -202,32 +197,7 @@ export const stripMediaLoadReveal: Action<HTMLElement> = (node) => {
 		}
 	};
 
-	void (async () => {
-		await tick();
-		await new Promise<void>((r) => requestAnimationFrame(() => r()));
-
-		if (cancelled) return;
-
-		let loaders = collectLoaders(node);
-
-		if (loaders.length === 0) {
-			await new Promise<void>((r) => requestAnimationFrame(() => r()));
-			if (cancelled) return;
-			loaders = collectLoaders(node);
-		}
-
-		if (loaders.length === 0) {
-			await finish();
-			return;
-		}
-
-		try {
-			await Promise.all(loaders);
-		} catch {
-			/* still reveal to avoid stuck state */
-		}
-		if (!cancelled) await finish();
-	})();
+	void afterLoadersResolve(node, isCancelled, finish);
 
 	return {
 		destroy() {

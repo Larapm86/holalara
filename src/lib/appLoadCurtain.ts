@@ -1,38 +1,43 @@
 import { browser } from '$app/environment';
 
-/** Session-only: curtain runs once per tab, then strip reveals immediately on revisit. */
 export const APP_CURTAIN_SESSION_KEY = 'holalara-curtain-dismissed';
 
-/** No mosaic / counter curtain on phones and touch-primary — layout is unreliable; skip entirely. */
-export function skipHomeLoadCurtain(): boolean {
-	if (!browser || typeof window === 'undefined') return false;
-	return (
-		window.matchMedia('(max-width: 900px)').matches ||
-		window.matchMedia('(pointer: coarse)').matches
-	);
+export function persistDismissedFlag(): void {
+	try {
+		sessionStorage.setItem(APP_CURTAIN_SESSION_KEY, '1');
+	} catch {
+		/* private mode / quota */
+	}
+}
+
+export function isDismissedInSession(): boolean {
+	try {
+		return sessionStorage.getItem(APP_CURTAIN_SESSION_KEY) === '1';
+	} catch {
+		return false;
+	}
 }
 
 /**
- * Home strip: after all media loaders resolve, wait for the initial load curtain to lift (first
- * visit this session only), then continue to `afterPaint` + `data-media-loaded`.
+ * Curtain mosaic only on large desktop with a real hover pointer; everyone else skips (mobile / tablet / touch).
  */
+export function skipHomeLoadCurtain(): boolean {
+	if (!browser || typeof window === 'undefined') return true;
+	const desktop =
+		window.matchMedia('(min-width: 1025px)').matches &&
+		window.matchMedia('(pointer: fine)').matches &&
+		window.matchMedia('(hover: hover)').matches;
+	return !desktop;
+}
+
+/** Home strip: wait for curtain dismiss on first desktop visit, then media can reveal. */
 export async function waitForInitialCurtainHome(): Promise<void> {
 	if (!browser) return;
 	if (skipHomeLoadCurtain()) {
-		try {
-			sessionStorage.setItem(APP_CURTAIN_SESSION_KEY, '1');
-		} catch {
-			/* ignore */
-		}
+		persistDismissedFlag();
 		return;
 	}
-	let dismissed = false;
-	try {
-		dismissed = sessionStorage.getItem(APP_CURTAIN_SESSION_KEY) === '1';
-	} catch {
-		dismissed = false;
-	}
-	if (dismissed) return;
+	if (isDismissedInSession()) return;
 
 	await new Promise<void>((resolve) => {
 		let settled = false;
@@ -44,9 +49,7 @@ export async function waitForInitialCurtainHome(): Promise<void> {
 			resolve();
 		};
 		window.addEventListener('holalara:curtain-dismissed', done, { once: true });
-		/* Safety valve: never deadlock home if the curtain event chain breaks. */
 		const fallbackId = window.setTimeout(done, 7000);
-		/* Double rAF so AppLoadCurtain’s listener is attached before we signal. */
 		requestAnimationFrame(() => {
 			requestAnimationFrame(() => {
 				window.dispatchEvent(new CustomEvent('holalara:curtain-ready'));
