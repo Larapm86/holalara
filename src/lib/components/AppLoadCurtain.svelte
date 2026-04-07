@@ -58,17 +58,22 @@
 		return rest === '/' || rest === '';
 	}
 
-	function buildMosaic(): Array<{ cx: number; cy: number; w: number; h: number }> {
+	function buildMosaic(viewportW: number): Array<{ cx: number; cy: number; w: number; h: number }> {
 		const tiles: Array<{ cx: number; cy: number; w: number; h: number }> = [];
-		const totalH = MOSAIC_ROWS.reduce((sum, row) => sum + row[0][1], 0) + GAP * (MOSAIC_ROWS.length - 1);
-		let y = -totalH / 2;
+		/* Narrow viewports: shrink mosaic so burst tiles stay on-screen and readable */
+		const mosaicScale = viewportW < 900 ? Math.min(1, (viewportW - 24) / 720) : 1;
+		const totalHScaled =
+			MOSAIC_ROWS.reduce((sum, row) => sum + row[0][1] * mosaicScale, 0) +
+			GAP * (MOSAIC_ROWS.length - 1);
+		let y = -totalHScaled / 2;
 		for (const row of MOSAIC_ROWS) {
-			const rowH = row[0][1];
-			const totalW = row.reduce((sum, [w]) => sum + w, 0) + GAP * (row.length - 1);
+			const rowH = row[0][1] * mosaicScale;
+			const totalW = row.reduce((sum, [w]) => sum + w * mosaicScale, 0) + GAP * (row.length - 1);
 			let x = -totalW / 2;
 			for (const [w] of row) {
-				tiles.push({ cx: x + w / 2, cy: y + rowH / 2, w, h: rowH });
-				x += w + GAP;
+				const tw = w * mosaicScale;
+				tiles.push({ cx: x + tw / 2, cy: y + rowH / 2, w: tw, h: rowH });
+				x += tw + GAP;
 			}
 			y += rowH + GAP;
 		}
@@ -230,9 +235,13 @@
 		}
 		targetRetryCount = 0;
 
-		const mosaic = buildMosaic().slice(0, targets.length);
-		const vcx = window.innerWidth / 2;
-		const vcy = window.innerHeight / 2;
+		const vw = window.innerWidth;
+		const vh = window.innerHeight;
+		const mosaic = buildMosaic(vw).slice(0, targets.length);
+		const vcx = vw / 2;
+		const vcy = vh / 2;
+		/* 0.04 reads as invisible on narrow screens; keep burst readable */
+		const burstStartScale = vw < 900 ? 0.16 : 0.06;
 
 		tiles = mosaic.map((m, i) => {
 			return {
@@ -240,7 +249,7 @@
 				top: vcy,
 				width: m.w,
 				height: m.h,
-				scale: 0.04,
+				scale: burstStartScale,
 				opacity: 0,
 				transition: '',
 				html: tileMarkupFromTarget(targets[i] as HTMLElement)
@@ -432,7 +441,11 @@
 		opacity: 1;
 		transition: opacity 0.64s ease;
 		font-family: Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif;
-		overflow: clip;
+		/* `clip` can behave oddly on some mobile WebKit builds */
+		overflow: hidden;
+		padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px)
+			env(safe-area-inset-left, 0px);
+		box-sizing: border-box;
 	}
 
 	.app-load-curtain--exit {
@@ -444,20 +457,22 @@
 		position: absolute;
 		right: 34px;
 		bottom: 30px;
-		z-index: 3;
+		z-index: 4;
 		font-size: min(5.5vw, 65px);
 		font-weight: 500;
 		line-height: 1;
 		letter-spacing: -0.04em;
 		color: #111;
 		font-variant-numeric: tabular-nums;
+		text-shadow: 0 1px 0 color-mix(in srgb, var(--bg, #f0efed) 70%, transparent);
 	}
 
 	.app-load-curtain__name {
 		position: absolute;
 		left: 30px;
-		bottom: 0;
-		z-index: 3;
+		bottom: 24px;
+		z-index: 4;
+		max-width: calc(100% - 2rem);
 		font-size: min(3.5vw, 44px);
 		font-weight: 500;
 		line-height: 1;
@@ -465,10 +480,11 @@
 		color: #111;
 		transform: translateY(115%);
 		transition: transform 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+		text-shadow: 0 1px 0 color-mix(in srgb, var(--bg, #f0efed) 70%, transparent);
 	}
 
 	.app-load-curtain__name--show {
-		transform: translateY(-32px);
+		transform: translateY(0);
 	}
 
 	.app-load-curtain__name--hide {
@@ -481,12 +497,16 @@
 		inset: 0;
 		z-index: 2;
 		pointer-events: none;
+		isolation: isolate;
 	}
 
 	.app-load-curtain__tile {
 		position: absolute;
 		overflow: hidden;
 		background: #b0b0ae;
+		z-index: 1;
+		-webkit-backface-visibility: hidden;
+		backface-visibility: hidden;
 		will-change: left, top, width, height, opacity, transform;
 	}
 
@@ -511,12 +531,21 @@
 
 	@media (max-width: 900px) {
 		.app-load-curtain__counter {
-			right: 16px;
-			bottom: 16px;
+			right: max(16px, env(safe-area-inset-right, 0px));
+			/* Sit clearly above home indicator / gesture bar */
+			bottom: max(28px, calc(env(safe-area-inset-bottom, 0px) + 18px));
+			font-size: min(11vw, 52px);
 		}
 
 		.app-load-curtain__name {
-			left: 16px;
+			left: max(16px, env(safe-area-inset-left, 0px));
+			bottom: max(28px, calc(env(safe-area-inset-bottom, 0px) + 18px));
+			font-size: min(6vw, 30px);
+		}
+
+		/* Name slide: on narrow screens avoid tiny negative translate — land flush */
+		.app-load-curtain__name--show {
+			transform: translateY(0);
 		}
 	}
 
