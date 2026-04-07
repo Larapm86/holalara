@@ -1,4 +1,5 @@
 import type { Action } from 'svelte/action';
+import { waitForInitialCurtainHome } from '$lib/appLoadCurtain';
 import { browser } from '$app/environment';
 import { tick } from 'svelte';
 
@@ -156,6 +157,8 @@ export const stripMediaLoadReveal: Action<HTMLElement> = (node) => {
 	let cancelled = false;
 
 	const finish = async () => {
+		if (cancelled) return;
+		await waitForInitialCurtainHome();
 		if (cancelled) return;
 		await afterPaint();
 		if (cancelled) return;

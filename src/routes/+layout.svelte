@@ -12,6 +12,7 @@
 	import { onNavigate } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
 	import '../app.css';
+	import AppLoadCurtain from '$lib/components/AppLoadCurtain.svelte';
 	import { pageShellEntrance } from '$lib/actions/pageShellEntrance';
 
 	let { children } = $props();
@@ -124,6 +125,7 @@
 <TvStaticBackground />
 <LenisScroll />
 <ReadMoreCursor />
+<AppLoadCurtain />
 
 <button
 	type="button"
