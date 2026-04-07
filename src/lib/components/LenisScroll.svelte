@@ -7,7 +7,6 @@
 	let lenis: Lenis | undefined;
 
 	function scheduleResize() {
-		lenis?.resize();
 		requestAnimationFrame(() => lenis?.resize());
 	}
 
@@ -17,11 +16,17 @@
 
 	onMount(() => {
 		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		/*
+		 * Lenis uses a continuous RAF loop (autoRaf) and smooths wheel/touch — great on desktop
+		 * with a mouse, but it often feels sluggish on phones/tablets and competes with Lottie/video.
+		 * Use native scrolling on touch-primary devices.
+		 */
+		if (window.matchMedia('(pointer: coarse)').matches) return;
 
 		lenis = new Lenis({
 			autoRaf: true,
-			/** Default-ish lerp — values ~0.06–0.07 lag behind fast wheel input and feel “stuck” */
-			lerp: 0.1,
+			/** Slightly higher than default 0.1 — less “lag” behind fast wheel / trackpad */
+			lerp: 0.14,
 			smoothWheel: true,
 			wheelMultiplier: 1,
 			touchMultiplier: 1,

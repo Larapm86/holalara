@@ -823,8 +823,12 @@
 		color: var(--fg);
 	}
 
+	/*
+	 * Full-screen menu layout must only apply when [open], or author `display: flex` overrides
+	 * the UA `dialog:not([open]) { display: none }` and the closed dialog covers the whole page.
+	 */
 	@media (max-width: 1024px) {
-		.site-nav__dialog {
+		.site-nav__dialog[open] {
 			position: fixed;
 			inset: 0;
 			width: 100%;
@@ -838,7 +842,7 @@
 			box-shadow: none;
 		}
 
-		.site-nav__dialog-inner {
+		.site-nav__dialog[open] .site-nav__dialog-inner {
 			flex: 1;
 			display: flex;
 			flex-direction: column;
@@ -851,7 +855,7 @@
 			padding-right: max(var(--page-margin), env(safe-area-inset-right, 0px));
 		}
 
-		.site-nav__dialog-meta {
+		.site-nav__dialog[open] .site-nav__dialog-meta {
 			margin-top: auto;
 			padding-top: 1.5rem;
 		}
