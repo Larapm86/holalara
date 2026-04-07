@@ -9,11 +9,12 @@ import { browser } from '$app/environment';
 export const pageShellEntrance: Action<HTMLElement> = (node) => {
 	if (!browser) return {};
 
-	const mqNarrow = window.matchMedia('(max-width: 900px)');
+	/* Match SiteNav mobile/tablet bar (1024): landscape phones are often 900–1024px wide and would skip kick at 900px. */
+	const mqShellKick = window.matchMedia('(max-width: 1024px)');
 	const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 	function kick() {
-		if (!mqNarrow.matches || mqReduce.matches) return;
+		if (!mqShellKick.matches || mqReduce.matches) return;
 		node.classList.add('page-shell--entrance-restart');
 		void node.offsetHeight;
 		node.classList.remove('page-shell--entrance-restart');

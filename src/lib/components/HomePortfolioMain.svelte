@@ -50,6 +50,8 @@
 					<video
 						class="page-main__image-placeholder__video"
 						src="{base}/video/sobero.mov"
+						data-media-reveal="metadata"
+						preload="metadata"
 						autoplay
 						muted
 						loop
@@ -123,6 +125,7 @@
 		<div class="page-main__image-placeholder page-main__image-placeholder--lottie page-main__placeholder-6-panel"></div>
 	</a>
 	</div>
+	<div class="page-main__row-spacer page-main__row-spacer--after-kwit" aria-hidden="true"></div>
 	<a
 		href="{base}/work/habit-loops"
 		class="page-main__placeholder-7 page-main__cs-link page-main__cs-link--yazio"

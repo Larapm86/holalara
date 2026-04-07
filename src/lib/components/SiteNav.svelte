@@ -683,8 +683,8 @@
 	}
 
 	.site-nav__menu-btn:focus-visible {
-		outline: 2px solid var(--focus-ring);
-		outline-offset: 2px;
+		outline: 2px solid color-mix(in srgb, var(--fg) 42%, transparent);
+		outline-offset: 3px;
 	}
 
 	/* —— Mobile / tablet dialog (only when .site-nav__mobile-bar is visible, ≤1024px) —— */
@@ -697,6 +697,8 @@
 		color: var(--fg);
 		width: 100%;
 		max-width: none;
+		/* UA often paints a blue focus ring on open modal dialogs */
+		outline: none;
 	}
 
 	.site-nav__dialog::backdrop {
@@ -742,7 +744,7 @@
 		border-bottom: none;
 	}
 
-	/* Plain text control (not a “button” chrome) — still a <button> for focus + a11y */
+	/* Plain label-style control — match Menu/Close bar button (no link underline) */
 	.site-nav__dialog-close {
 		-webkit-appearance: none;
 		appearance: none;
@@ -759,8 +761,7 @@
 		letter-spacing: -0.02em;
 		line-height: 1.25;
 		cursor: pointer;
-		text-decoration: underline;
-		text-underline-offset: 0.2em;
+		text-decoration: none;
 		min-height: 44px;
 		display: inline-flex;
 		align-items: center;
@@ -773,8 +774,9 @@
 	}
 
 	.site-nav__dialog-close:focus-visible {
-		outline: 2px solid var(--focus-ring);
-		outline-offset: 2px;
+		outline: 2px solid color-mix(in srgb, var(--fg) 42%, transparent);
+		outline-offset: 3px;
+		border-radius: 4px;
 	}
 
 	.site-nav__dialog-list {

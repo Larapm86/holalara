@@ -240,8 +240,8 @@ html[data-custom-cursor] [contenteditable='true'] {
 	animation: none !important;
 }
 
-/* Same entrance timing as desktop on narrow viewports */
-@media (max-width: 900px) {
+/* Same entrance timing as desktop on viewports that use pageShellEntrance kick (≤1024px) */
+@media (max-width: 1024px) {
 	.page-shell {
 		-webkit-animation: page-shell-enter 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
 		animation: page-shell-enter 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -606,6 +606,11 @@ html[data-custom-cursor] [contenteditable='true'] {
 	min-width: 0;
 	min-height: 0;
 	pointer-events: none;
+}
+
+/* Mobile-only rhythm between Kwit (5–6) and Yazio (7–8); hidden on desktop (14-col band shares one row). */
+.page-main__row-spacer--after-kwit {
+	display: none;
 }
 
 /*
@@ -1110,13 +1115,17 @@ html[data-custom-cursor] [contenteditable='true'] {
 	transition: transform var(--page-main-panel-reveal-duration) cubic-bezier(0.55, 0, 0.85, 0.2);
 }
 
-.page-main--media-exit .page-main__placeholder-4-corner {
+/*
+ * Match panel reverse (slide down): sticker fades over the same duration/easing as panels.
+ * Selector beats `.page-main__cs-link--ux-panel[data-media-loaded] ~ …` so `animation: none` wins on exit.
+ */
+.page-main--media-exit .page-main__cs-link--ux-panel[data-media-loaded] ~ .page-main__placeholder-4-corner {
 	opacity: 0;
-	visibility: hidden;
 	animation: none;
 	transition:
-		opacity 0.18s ease,
-		visibility 0.18s ease;
+		opacity var(--page-main-panel-reveal-duration) cubic-bezier(0.55, 0, 0.85, 0.2),
+		visibility 0s linear var(--page-main-panel-reveal-duration);
+	visibility: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1166,6 +1175,13 @@ html[data-custom-cursor] [contenteditable='true'] {
 	.page-main--media-exit .page-main__placeholder-11[data-media-loaded] > :first-child {
 		transform: none;
 		will-change: auto;
+		transition: none;
+	}
+
+	.page-main--media-exit .page-main__cs-link--ux-panel[data-media-loaded] ~ .page-main__placeholder-4-corner {
+		opacity: 0;
+		animation: none;
+		visibility: hidden;
 		transition: none;
 	}
 
@@ -1609,16 +1625,24 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 	.page-main.page-main--portfolio .page-main__body > .page-main__mobile-rhythm--before-11 {
 		display: block;
 		grid-column: 1 / -1;
-		grid-row: 7;
+		grid-row: 8;
 		min-height: var(--page-main-row-height);
 		pointer-events: none;
 	}
 
 	.page-main.page-main--portfolio
 		.page-main__body
-		> .page-main__row-spacer:not(.page-main__row-spacer--strip-fifth):not(.page-main__row-spacer--lower-bands) {
+		> .page-main__row-spacer:not(.page-main__row-spacer--strip-fifth):not(.page-main__row-spacer--lower-bands):not(.page-main__row-spacer--after-kwit) {
 		grid-column: 1 / -1;
 		grid-row: 2;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__row-spacer--after-kwit {
+		display: block;
+		grid-column: 1 / -1;
+		grid-row: 4;
+		min-height: var(--page-main-row-height);
+		pointer-events: none;
 	}
 
 	/*
@@ -1661,32 +1685,32 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-7 {
 		grid-column: 1;
-		grid-row: 4;
+		grid-row: 5;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-8 {
 		grid-column: 2;
-		grid-row: 4;
+		grid-row: 5;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__row-spacer--lower-bands {
 		grid-column: 1 / -1;
-		grid-row: 5;
+		grid-row: 6;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-9 {
 		grid-column: 2;
-		grid-row: 6;
+		grid-row: 7;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-10 {
 		grid-column: 3;
-		grid-row: 6;
+		grid-row: 7;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-11 {
 		grid-column: 1;
-		grid-row: 8;
+		grid-row: 9;
 	}
 
 	.page-main.page-main--route .page-main__body {
