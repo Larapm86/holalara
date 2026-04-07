@@ -139,3 +139,61 @@ export const mediaLoadReveal: Action<HTMLElement> = (node) => {
 		}
 	};
 };
+
+function getStripRevealHosts(placeholders: HTMLElement): HTMLElement[] {
+	const row = placeholders.querySelectorAll<HTMLElement>(':scope > .page-main__cs-link');
+	const ux = placeholders.querySelectorAll<HTMLElement>(
+		'.page-main__ux-panel-wrap .page-main__cs-link--ux-panel'
+	);
+	return [...row, ...ux];
+}
+
+/**
+ * Home strip (P1–P4): one gate for all tiles — wait for every Lottie + video in the placeholders
+ * subtree, then set `data-media-loaded` on all four links together so the masked reveal runs in sync.
+ */
+export const stripMediaLoadReveal: Action<HTMLElement> = (node) => {
+	let cancelled = false;
+
+	const finish = async () => {
+		if (cancelled) return;
+		await afterPaint();
+		if (cancelled) return;
+		for (const h of getStripRevealHosts(node)) {
+			h.setAttribute('data-media-loaded', '');
+		}
+	};
+
+	void (async () => {
+		await tick();
+		await new Promise<void>((r) => requestAnimationFrame(() => r()));
+
+		if (cancelled) return;
+
+		let loaders = collectLoaders(node);
+
+		if (loaders.length === 0) {
+			await new Promise<void>((r) => requestAnimationFrame(() => r()));
+			if (cancelled) return;
+			loaders = collectLoaders(node);
+		}
+
+		if (loaders.length === 0) {
+			await finish();
+			return;
+		}
+
+		try {
+			await Promise.all(loaders);
+		} catch {
+			/* still reveal to avoid stuck state */
+		}
+		if (!cancelled) await finish();
+	})();
+
+	return {
+		destroy() {
+			cancelled = true;
+		}
+	};
+};

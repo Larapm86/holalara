@@ -3,7 +3,7 @@
 	import whoMark from '$lib/assets/WHO-logo.png';
 	import SoberoStrategyLottie from '$lib/components/SoberoStrategyLottie.svelte';
 	import SiteFooter from '$lib/components/SiteFooter.svelte';
-	import { mediaLoadReveal } from '$lib/actions/mediaLoadReveal';
+	import { mediaLoadReveal, stripMediaLoadReveal } from '$lib/actions/mediaLoadReveal';
 	import { portfolioScrollReveal } from '$lib/actions/portfolioScrollReveal';
 
 	/** Case study panel `aria-label` text (matches ReadMoreCursor pill wording where relevant) */
@@ -28,12 +28,11 @@
 	</div>
 	<div class="page-main__row-spacer" aria-hidden="true"></div>
 	<div class="page-main__strip-band">
-	<div class="page-main__placeholders">
+	<div class="page-main__placeholders" use:stripMediaLoadReveal>
 		<a
 			href="{base}/work/zero-to-one"
 			class="page-main__cs-link page-main__cs-link--a"
 			aria-label="{CASE_STUDY_A_TITLE} — open full case study"
-			use:mediaLoadReveal
 		>
 			<div class="page-main__image-placeholder page-main__image-placeholder--lottie" aria-hidden="true">
 				<SoberoStrategyLottie file="sobero-cover-4.json" ariaLabel="" fit="contain" />
@@ -43,7 +42,6 @@
 			href="{base}/work/zero-to-one"
 			class="page-main__cs-link page-main__cs-link--a"
 			aria-label="{CASE_STUDY_A_TITLE} — open full case study"
-			use:mediaLoadReveal
 		>
 			<div class="page-main__image-placeholder page-main__image-placeholder--media" aria-hidden="true">
 				<div class="page-main__phone-frame" aria-hidden="true">
@@ -64,7 +62,6 @@
 			href="{base}/work/ux-maturity"
 			class="page-main__cs-link page-main__cs-link--b"
 			aria-label="{CASE_STUDY_B_TITLE} — open full case study"
-			use:mediaLoadReveal
 		>
 			<div class="page-main__image-placeholder page-main__image-placeholder--image" aria-hidden="true">
 				<SoberoStrategyLottie file="sobero-strategy01-2.json" ariaLabel="" fit="contain" />
@@ -80,7 +77,6 @@
 				href="{base}/work/ux-maturity"
 				class="page-main__cs-link page-main__cs-link--b page-main__cs-link--ux-panel"
 				aria-label="{CASE_STUDY_B_TITLE} — open full case study"
-				use:mediaLoadReveal
 			>
 				<div class="page-main__ux-panel-reveal" aria-hidden="true">
 					<div class="page-main__image-placeholder page-main__image-placeholder--media">
