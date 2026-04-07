@@ -211,6 +211,7 @@
 		let lastClientY = 0;
 		let hasLastPointer = false;
 		let scrollSyncRaf: number | null = null;
+		let hitTestRaf: number | null = null;
 
 		function applyPoint(clientX: number, clientY: number) {
 			pointerOverSiteNav = isPointerOverSiteNav(clientX, clientY);
@@ -244,7 +245,11 @@
 			x = e.clientX;
 			y = e.clientY;
 			pointerInsideWindow = true;
-			applyPoint(lastClientX, lastClientY);
+			if (hitTestRaf !== null) return;
+			hitTestRaf = requestAnimationFrame(() => {
+				hitTestRaf = null;
+				applyPoint(lastClientX, lastClientY);
+			});
 		};
 
 		const onScroll = () => {
@@ -278,6 +283,7 @@
 		return () => {
 			stopScramble();
 			if (scrollSyncRaf !== null) cancelAnimationFrame(scrollSyncRaf);
+			if (hitTestRaf !== null) cancelAnimationFrame(hitTestRaf);
 			window.removeEventListener('pointermove', onMove);
 			window.removeEventListener('scroll', onScroll, { capture: true });
 			window.removeEventListener('blur', onLeaveWindow);

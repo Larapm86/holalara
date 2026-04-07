@@ -82,10 +82,7 @@ export const portfolioScrollReveal: Action<HTMLElement> = (node) => {
 				primeViewport();
 			});
 		});
-		queueMicrotask(primeViewport);
-		setTimeout(primeViewport, 0);
 		setTimeout(primeViewport, 80);
-		setTimeout(primeViewport, 240);
 
 		resizeHandler = () => queueMicrotask(primeViewport);
 		window.addEventListener('resize', resizeHandler, { passive: true });

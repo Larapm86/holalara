@@ -105,31 +105,13 @@
 				};
 				document.addEventListener('visibilitychange', onVisibility);
 
-				{
-					const coarse =
-						typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
-					const narrow =
-						typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches;
-					if (narrow && coarse) {
-						requestAnimationFrame(() => {
-							applyVisibilityPlayback();
-							requestAnimationFrame(() => {
-								anim?.resize();
-								dispatchLottieReady();
-							});
-						});
-					} else {
-						requestAnimationFrame(() => {
-							applyVisibilityPlayback();
-							requestAnimationFrame(() => {
-								anim?.resize();
-								requestAnimationFrame(() => {
-									dispatchLottieReady();
-								});
-							});
-						});
-					}
-				}
+				requestAnimationFrame(() => {
+					applyVisibilityPlayback();
+					requestAnimationFrame(() => {
+						anim?.resize();
+						dispatchLottieReady();
+					});
+				});
 
 				resizeObserver = new ResizeObserver(() => {
 					if (roRaf) return;

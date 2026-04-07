@@ -288,7 +288,9 @@
 	}
 
 	function setTile(i: number, patch: Partial<TileState>) {
-		tiles = tiles.map((t, idx) => (idx === i ? { ...t, ...patch } : t));
+		const tile = tiles[i];
+		if (!tile) return;
+		Object.assign(tile, patch);
 	}
 
 	/** Counter + name — independent of DOM targets so they always run. */

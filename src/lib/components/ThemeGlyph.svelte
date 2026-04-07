@@ -40,10 +40,11 @@
 	$effect(() => {
 		if (morphFrom === null) return;
 		if (morphTimer) clearTimeout(morphTimer);
+		const clearMs = morphClearMs;
 		morphTimer = setTimeout(() => {
 			morphFrom = null;
 			morphTimer = undefined;
-		}, 480);
+		}, clearMs);
 		return () => {
 			if (morphTimer) clearTimeout(morphTimer);
 		};
