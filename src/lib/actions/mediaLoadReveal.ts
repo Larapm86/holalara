@@ -61,6 +61,15 @@ function collectLoaders(node: HTMLElement): Promise<void>[] {
 	return loaders;
 }
 
+/** Lets the browser paint the initial “not loaded” state so the CSS transform transition can run. */
+function afterPaint(): Promise<void> {
+	return new Promise<void>((resolve) => {
+		requestAnimationFrame(() => {
+			requestAnimationFrame(() => resolve());
+		});
+	});
+}
+
 /**
  * Sets `data-media-loaded` on the node when nested videos, images, and Lottie instances are ready.
  * Pair with CSS: `.page-main__cs-link` / `.page-main__placeholder-*` get `overflow: hidden`; first child
@@ -69,7 +78,9 @@ function collectLoaders(node: HTMLElement): Promise<void>[] {
 export const mediaLoadReveal: Action<HTMLElement> = (node) => {
 	let cancelled = false;
 
-	const finish = () => {
+	const finish = async () => {
+		if (cancelled) return;
+		await afterPaint();
 		if (cancelled) return;
 		node.setAttribute('data-media-loaded', '');
 	};
@@ -89,7 +100,7 @@ export const mediaLoadReveal: Action<HTMLElement> = (node) => {
 		}
 
 		if (loaders.length === 0) {
-			queueMicrotask(finish);
+			await finish();
 			return;
 		}
 
@@ -98,7 +109,7 @@ export const mediaLoadReveal: Action<HTMLElement> = (node) => {
 		} catch {
 			/* still reveal to avoid stuck state */
 		}
-		if (!cancelled) finish();
+		if (!cancelled) await finish();
 	})();
 
 	return {

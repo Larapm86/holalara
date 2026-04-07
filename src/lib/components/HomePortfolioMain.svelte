@@ -4,6 +4,7 @@
 	import SoberoStrategyLottie from '$lib/components/SoberoStrategyLottie.svelte';
 	import SiteFooter from '$lib/components/SiteFooter.svelte';
 	import { mediaLoadReveal } from '$lib/actions/mediaLoadReveal';
+	import { portfolioScrollReveal } from '$lib/actions/portfolioScrollReveal';
 
 	/** Case study panel `aria-label` text (matches ReadMoreCursor pill wording where relevant) */
 	const CASE_STUDY_A_TITLE = 'Building a 0-1 Product for mindful drinking habits';
@@ -20,7 +21,8 @@
 	let { children } = $props();
 </script>
 
-<main class="page-main page-main--portfolio grid-14">
+<main class="page-main page-main--portfolio grid-14" use:portfolioScrollReveal>
+	<div class="page-main__body">
 	<div class="page-main__slot grid-14">
 		{@render children()}
 	</div>
@@ -160,5 +162,6 @@
 	>
 		<div class="page-main__image-placeholder page-main__image-placeholder--lottie page-main__placeholder-11-panel"></div>
 	</a>
+	</div>
 	<SiteFooter />
 </main>

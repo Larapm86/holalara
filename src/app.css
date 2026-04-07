@@ -401,6 +401,15 @@ html[data-custom-cursor] [contenteditable='true'] {
 }
 
 /*
+ * Content wrapper: on desktop, display:contents keeps children on the main grid (portfolio + route).
+ * Narrow: main becomes flex column; .page-main__body holds the inner grid and grows (see @media 900px).
+ */
+.page-main.page-main--portfolio .page-main__body,
+.page-main.page-main--route .page-main__body {
+	display: contents;
+}
+
+/*
  * Route slot: inherit the main 14-column track sizes from the parent grid so content lines up
  * with SiteNav (subgrid). Fallback repeats the same template when subgrid isn’t available.
  */
@@ -1509,23 +1518,49 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 }
 
 @media (max-width: 900px) {
-	.page-main.grid-14 {
-		grid-template-rows: auto;
-		grid-auto-rows: minmax(0, auto);
+	/*
+	 * Sticky footer on short pages: main is a flex column filling the shell; body holds the
+	 * portfolio / route grid and grows; footer stays at the bottom of the viewport.
+	 */
+	.page-main.page-main--portfolio,
+	.page-main.page-main--route {
+		display: flex;
+		flex-direction: column;
+		min-height: 100%;
 	}
 
-	.page-main.page-main--route.grid-14 {
+	.page-main.page-main--portfolio .page-main__body {
+		display: grid;
+		grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+		column-gap: var(--grid-gap);
+		row-gap: var(--grid-gap);
+		width: 100%;
+		min-height: 0;
+		flex: 1 1 auto;
 		grid-template-rows: auto;
 		grid-auto-rows: minmax(0, auto);
+		align-content: start;
+	}
+
+	.page-main.page-main--route .page-main__body {
+		display: grid;
+		grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+		column-gap: var(--grid-gap);
+		row-gap: var(--grid-gap);
+		width: 100%;
+		min-height: 0;
+		flex: 1 1 auto;
+		grid-template-rows:
+			auto
+			minmax(var(--page-main-row-height), auto)
+			minmax(0, 1fr)
+			auto;
+		align-content: start;
 	}
 
 	.page-main.page-main--route .page-main__route-fill {
-		grid-row: auto;
+		grid-row: 3;
 		min-height: 0;
-	}
-
-	.page-main.page-main--route .site-footer.grid-14 {
-		grid-row: auto;
 	}
 
 	/* Slot → spacer band → placeholders (same order as desktop) */
@@ -1550,20 +1585,60 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 	.page-main__placeholders {
 		grid-column: 1 / -1;
 		grid-row: 3;
-		grid-template-columns: 1fr;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		grid-template-rows: auto;
+		column-gap: var(--grid-gap);
 		row-gap: var(--grid-gap);
 		min-height: 0;
 		max-height: none;
 		overflow: visible;
+		align-items: stretch;
 	}
 
-	.page-main__placeholder-5,
-	.page-main__placeholder-6,
-	.page-main__placeholder-7,
-	.page-main__placeholder-8,
-	.page-main__placeholder-9,
-	.page-main__placeholder-10,
+	/* Lower bands: pairs (5+6, 7+8, 9+10); 11 full width */
+	.page-main__placeholder-5 {
+		grid-column: 1 / span 7;
+		grid-row: auto;
+		min-height: min(34vh, 20rem);
+		max-height: none;
+	}
+
+	.page-main__placeholder-6 {
+		grid-column: 8 / span 7;
+		grid-row: auto;
+		min-height: min(34vh, 20rem);
+		max-height: none;
+	}
+
+	.page-main__placeholder-7 {
+		grid-column: 1 / span 7;
+		grid-row: auto;
+		min-height: min(34vh, 20rem);
+		max-height: none;
+	}
+
+	.page-main__placeholder-8 {
+		grid-column: 8 / span 7;
+		grid-row: auto;
+		min-height: min(34vh, 20rem);
+		max-height: none;
+	}
+
+	.page-main__placeholder-9 {
+		grid-column: 1 / span 7;
+		grid-row: auto;
+		min-height: min(34vh, 20rem);
+		max-height: none;
+	}
+
+	.page-main__placeholder-10 {
+		grid-column: 8 / span 7;
+		grid-row: auto;
+		min-height: min(34vh, 20rem);
+		max-height: none;
+	}
+
 	.page-main__placeholder-11 {
 		grid-column: 1 / -1;
 		grid-row: auto;
@@ -1572,8 +1647,11 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 	}
 
 	.site-footer.grid-14 {
-		grid-column: 1 / -1;
-		grid-row: auto;
+		grid-row: unset;
+		grid-column: unset;
+		width: 100%;
+		flex-shrink: 0;
+		align-self: stretch;
 		padding-block: var(--grid-gap);
 		row-gap: 0.35rem;
 	}
@@ -1598,9 +1676,10 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		display: none;
 	}
 
+	/* Strip: two columns → Sobero pair, then strategy + UX pair (gap cell display:none) */
 	.page-main__placeholders > .page-main__cs-link,
 	.page-main__placeholders > .page-main__ux-panel-wrap {
-		grid-column: 1 / -1;
+		grid-column: auto;
 		grid-row: auto;
 		height: auto;
 		min-height: 0;
@@ -1621,8 +1700,16 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		min-height: min(52vh, 28rem);
 	}
 
+	.page-main__placeholders .page-main__image-placeholder--lottie {
+		min-height: min(40vh, 22rem);
+	}
+
 	.page-main__image-placeholder--image {
 		min-height: min(48vh, 26rem);
+	}
+
+	.page-main__placeholders .page-main__image-placeholder--image {
+		min-height: min(36vh, 20rem);
 	}
 
 	.page-main__lottie {
@@ -1649,6 +1736,78 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 
 	.page-main__ux-panel-reveal .page-main__image-placeholder__video {
 		max-height: min(42vh, 17rem);
+	}
+
+	/*
+	 * Mobile: frost until the panel is in view *and* media has revealed (data-media-loaded).
+	 * Otherwise above-the-fold tiles lose the veil immediately (IO fires first frame) while the
+	 * masked slide has nothing to read against. portfolioScrollReveal adds .page-main__panel--in-view.
+	 */
+	.page-main.page-main--portfolio
+		.page-main__placeholders
+		> .page-main__cs-link:not(.page-main__panel--in-view[data-media-loaded])::after,
+	.page-main.page-main--portfolio
+		.page-main__placeholder-5:not(.page-main__panel--in-view[data-media-loaded])::after,
+	.page-main.page-main--portfolio
+		.page-main__placeholder-6:not(.page-main__panel--in-view[data-media-loaded])::after,
+	.page-main.page-main--portfolio
+		.page-main__placeholder-7:not(.page-main__panel--in-view[data-media-loaded])::after,
+	.page-main.page-main--portfolio
+		.page-main__placeholder-8:not(.page-main__panel--in-view[data-media-loaded])::after,
+	.page-main.page-main--portfolio
+		.page-main__placeholder-9:not(.page-main__panel--in-view[data-media-loaded])::after,
+	.page-main.page-main--portfolio
+		.page-main__placeholder-10:not(.page-main__panel--in-view[data-media-loaded])::after,
+	.page-main.page-main--portfolio
+		.page-main__placeholder-11:not(.page-main__panel--in-view[data-media-loaded])::after {
+		opacity: 0.58 !important;
+		transition: opacity 0.42s var(--placeholder-cs-frost-easing);
+	}
+
+	.page-main.page-main--portfolio
+		.page-main__placeholders
+		> .page-main__cs-link.page-main__panel--in-view[data-media-loaded]::after,
+	.page-main.page-main--portfolio .page-main__placeholder-5.page-main__panel--in-view[data-media-loaded]::after,
+	.page-main.page-main--portfolio .page-main__placeholder-6.page-main__panel--in-view[data-media-loaded]::after,
+	.page-main.page-main--portfolio .page-main__placeholder-7.page-main__panel--in-view[data-media-loaded]::after,
+	.page-main.page-main--portfolio .page-main__placeholder-8.page-main__panel--in-view[data-media-loaded]::after,
+	.page-main.page-main--portfolio .page-main__placeholder-9.page-main__panel--in-view[data-media-loaded]::after,
+	.page-main.page-main--portfolio .page-main__placeholder-10.page-main__panel--in-view[data-media-loaded]::after,
+	.page-main.page-main--portfolio .page-main__placeholder-11.page-main__panel--in-view[data-media-loaded]::after {
+		opacity: 0 !important;
+		transition: opacity 0.55s ease;
+	}
+
+	.page-main.page-main--portfolio
+		.page-main__ux-panel-wrap:not(.page-main__panel--in-view)
+		.page-main__cs-link--ux-panel::after,
+	.page-main.page-main--portfolio
+		.page-main__ux-panel-wrap:not(:has(.page-main__cs-link--ux-panel[data-media-loaded]))
+		.page-main__cs-link--ux-panel::after {
+		opacity: 0.58 !important;
+		transition: opacity 0.42s var(--placeholder-cs-frost-easing);
+	}
+
+	.page-main.page-main--portfolio
+		.page-main__ux-panel-wrap.page-main__panel--in-view:has(.page-main__cs-link--ux-panel[data-media-loaded])
+		.page-main__cs-link--ux-panel::after {
+		opacity: 0 !important;
+		transition: opacity 0.55s ease;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link::after,
+		.page-main.page-main--portfolio .page-main__placeholder-5::after,
+		.page-main.page-main--portfolio .page-main__placeholder-6::after,
+		.page-main.page-main--portfolio .page-main__placeholder-7::after,
+		.page-main.page-main--portfolio .page-main__placeholder-8::after,
+		.page-main.page-main--portfolio .page-main__placeholder-9::after,
+		.page-main.page-main--portfolio .page-main__placeholder-10::after,
+		.page-main.page-main--portfolio .page-main__placeholder-11::after,
+		.page-main.page-main--portfolio .page-main__ux-panel-wrap .page-main__cs-link--ux-panel::after {
+			opacity: 0 !important;
+			transition: none;
+		}
 	}
 }
 
@@ -1942,13 +2101,19 @@ a {
 	outline-offset: -1px;
 }
 
-/* Implicit rows: each full-width section in main is one horizontal band */
-.page-shell.debug-grid main.page-main.grid-14 > :nth-child(odd) {
+/* Implicit rows: each full-width section in main is one horizontal band (children live in .page-main__body) */
+.page-shell.debug-grid main.page-main.page-main--portfolio.grid-14 > .page-main__body > :nth-child(odd),
+.page-shell.debug-grid main.page-main.page-main--route.grid-14 > .page-main__body > :nth-child(odd) {
 	background-color: rgba(239, 68, 68, 0.1);
 }
 
-.page-shell.debug-grid main.page-main.grid-14 > :nth-child(even) {
+.page-shell.debug-grid main.page-main.page-main--portfolio.grid-14 > .page-main__body > :nth-child(even),
+.page-shell.debug-grid main.page-main.page-main--route.grid-14 > .page-main__body > :nth-child(even) {
 	background-color: rgba(59, 130, 246, 0.1);
+}
+
+.page-shell.debug-grid main.page-main.grid-14 > .site-footer {
+	background-color: rgba(239, 68, 68, 0.12);
 }
 
 /* Do not set min-height on main here — it reflows the page when toggling the overlay */
