@@ -3,7 +3,7 @@
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
 	import { tick } from 'svelte';
-	import { APP_CURTAIN_SESSION_KEY } from '$lib/appLoadCurtain';
+	import { APP_CURTAIN_SESSION_KEY, skipHomeLoadCurtain } from '$lib/appLoadCurtain';
 
 	type TileState = {
 		left: number;
@@ -465,6 +465,18 @@
 		}
 		if (dismissed) {
 			show = false;
+			return;
+		}
+		if (skipHomeLoadCurtain() && isHomePath(page.url.pathname)) {
+			try {
+				sessionStorage.setItem(APP_CURTAIN_SESSION_KEY, '1');
+			} catch {
+				/* ignore */
+			}
+			show = false;
+			queueMicrotask(() => {
+				window.dispatchEvent(new CustomEvent('holalara:curtain-dismissed'));
+			});
 			return;
 		}
 		if (!isHomePath(page.url.pathname)) {
