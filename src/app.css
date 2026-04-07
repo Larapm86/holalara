@@ -410,6 +410,14 @@ html[data-custom-cursor] [contenteditable='true'] {
 }
 
 /*
+ * Home: wraps strip + spacer + P5/P6. Desktop uses display:contents so children stay on the main grid;
+ * narrow screens use one 3-column subgrid (see @media 900px).
+ */
+.page-main__strip-band {
+	display: contents;
+}
+
+/*
  * Route slot: inherit the main 14-column track sizes from the parent grid so content lines up
  * with SiteNav (subgrid). Fallback repeats the same template when subgrid isn’t available.
  */
@@ -504,7 +512,7 @@ html[data-custom-cursor] [contenteditable='true'] {
 	min-width: 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
 	.page-main.page-main--route .page-main__slot .index-cs,
 	.page-main.page-main--route .page-main__slot .about-page {
 		grid-column: 1 / -1;
@@ -1395,6 +1403,27 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 	}
 }
 
+/* Narrow screens: smaller stamp + offsets (paired with .page-main__placeholder-4-corner @ 900px) */
+@keyframes who-badge-enter-mobile {
+	0% {
+		opacity: 0;
+		transform: translate3d(14px, -22px, 0) scale(1.15) rotate(-4deg);
+	}
+	12% {
+		opacity: 1;
+	}
+	48% {
+		transform: translate3d(14px, -14px, 0) scale(0.92) rotate(0deg);
+	}
+	72% {
+		transform: translate3d(14px, -14px, 0) scale(1.05) rotate(0deg);
+	}
+	100% {
+		opacity: 1;
+		transform: translate3d(14px, -14px, 0) scale(1) rotate(0deg);
+	}
+}
+
 /* Corner marker: center on cell corner; stamp runs after phone reveal (see .page-main__cs-link--ux-panel) */
 .page-main__placeholder-4-corner {
 	position: absolute;
@@ -1442,6 +1471,12 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		opacity: 1;
 		visibility: visible;
 		transform: translate3d(28px, -28px, 0);
+	}
+}
+
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+	.page-main__cs-link--ux-panel[data-media-loaded] ~ .page-main__placeholder-4-corner {
+		transform: translate3d(14px, -14px, 0);
 	}
 }
 
@@ -1555,54 +1590,67 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		grid-row: 2;
 	}
 
-	.page-main.page-main--portfolio .page-main__body > .page-main__placeholders {
+	/*
+	 * Strip band: rows 1–2 = P1–P4; row 3 = empty, P5, P6. Spacer between strip and P5 hidden here.
+	 */
+	.page-main.page-main--portfolio .page-main__body > .page-main__strip-band {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		column-gap: var(--grid-gap);
+		row-gap: var(--grid-gap);
 		grid-column: 1 / -1;
+		grid-row: 3;
+		min-width: 0;
+		align-content: start;
+	}
+
+	.page-main.page-main--portfolio .page-main__strip-band > .page-main__placeholders {
+		grid-column: 1 / -1;
+		grid-row: 1 / span 2;
+	}
+
+	.page-main.page-main--portfolio .page-main__strip-band > .page-main__row-spacer--strip-fifth {
+		display: none;
+	}
+
+	.page-main.page-main--portfolio .page-main__strip-band > .page-main__placeholder-5 {
+		grid-column: 2;
 		grid-row: 3;
 	}
 
-	.page-main.page-main--portfolio .page-main__body > .page-main__row-spacer--strip-fifth {
-		grid-column: 1 / -1;
-		grid-row: 4;
-	}
-
-	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-5 {
-		grid-column: 1;
-		grid-row: 5;
-	}
-
-	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-6 {
+	.page-main.page-main--portfolio .page-main__strip-band > .page-main__placeholder-6 {
 		grid-column: 3;
-		grid-row: 5;
+		grid-row: 3;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-7 {
 		grid-column: 1;
-		grid-row: 6;
+		grid-row: 4;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-8 {
 		grid-column: 2;
-		grid-row: 6;
+		grid-row: 4;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__row-spacer--lower-bands {
 		grid-column: 1 / -1;
-		grid-row: 7;
+		grid-row: 5;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-9 {
 		grid-column: 2;
-		grid-row: 8;
+		grid-row: 6;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-10 {
 		grid-column: 3;
-		grid-row: 8;
+		grid-row: 6;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-11 {
 		grid-column: 1;
-		grid-row: 9;
+		grid-row: 7;
 	}
 
 	.page-main.page-main--route .page-main__body {
@@ -1660,31 +1708,79 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 	}
 
 	/*
-	 * Home strip (placeholders 1–4): 3-column checkerboard — [1][2][ ], [ ][3][4].
-	 * (nth-child(3) is .page-main__placeholders-gap, display:none — not a grid item.)
+	 * Home strip (P1–P4): [ ][1][2] — [3][4][ ] (nth-child(3) gap display:none — not a grid item.)
 	 */
 	.page-main.page-main--portfolio .page-main__placeholders {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 
 	.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link:nth-child(1) {
-		grid-column: 1;
+		grid-column: 2;
 		grid-row: 1;
 	}
 
 	.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link:nth-child(2) {
-		grid-column: 2;
+		grid-column: 3;
 		grid-row: 1;
 	}
 
 	.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link:nth-child(4) {
-		grid-column: 2;
+		grid-column: 1;
 		grid-row: 2;
 	}
 
 	.page-main.page-main--portfolio .page-main__placeholders > .page-main__ux-panel-wrap:nth-child(5) {
-		grid-column: 3;
+		grid-column: 2;
 		grid-row: 2;
+	}
+
+	/*
+	 * Square tiles on mobile (not P2 video, not P4 UX wrap).
+	 */
+	.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link:nth-child(1),
+	.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link:nth-child(4),
+	.page-main.page-main--portfolio .page-main__strip-band > .page-main__placeholder-5,
+	.page-main.page-main--portfolio .page-main__strip-band > .page-main__placeholder-6,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-7,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-8,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-9,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-10,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-11 {
+		aspect-ratio: 1 / 1;
+		width: 100%;
+		max-width: 100%;
+		min-height: 0;
+		height: auto;
+		align-self: stretch;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link:nth-child(1) > :first-child,
+	.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link:nth-child(4) > :first-child,
+	.page-main.page-main--portfolio .page-main__strip-band > .page-main__placeholder-5 > :first-child,
+	.page-main.page-main--portfolio .page-main__strip-band > .page-main__placeholder-6 > :first-child,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-7 > :first-child,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-8 > :first-child,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-9 > :first-child,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-10 > :first-child,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-11 > :first-child {
+		flex: 1 1 auto;
+		min-height: 0;
+	}
+
+	.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link:nth-child(1) .page-main__image-placeholder--lottie,
+	.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link:nth-child(4) .page-main__image-placeholder--image,
+	.page-main.page-main--portfolio .page-main__strip-band > .page-main__placeholder-5 .page-main__image-placeholder,
+	.page-main.page-main--portfolio .page-main__strip-band > .page-main__placeholder-6 .page-main__image-placeholder,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-7 .page-main__image-placeholder,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-8 .page-main__image-placeholder,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-9 .page-main__image-placeholder,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-10 .page-main__image-placeholder,
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-11 .page-main__image-placeholder {
+		min-height: 0 !important;
+		height: 100%;
+		max-height: 100%;
 	}
 
 	/* Lower bands: pairs (5+6, 7+8, 9+10); 11 full width */
@@ -1825,8 +1921,55 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		max-height: min(48vh, 19rem);
 	}
 
+	/* UX maturity (P4): cell hugs the phone frame instead of stretching to the grid row */
+	.page-main__placeholders > .page-main__ux-panel-wrap {
+		align-self: start;
+		height: auto;
+	}
+
+	.page-main__ux-panel-wrap .page-main__cs-link--ux-panel {
+		height: auto;
+		flex: 0 0 auto;
+		align-items: center;
+	}
+
+	.page-main__ux-panel-reveal {
+		flex: 0 0 auto;
+	}
+
+	.page-main__ux-panel-reveal > .page-main__image-placeholder--media {
+		flex: 0 0 auto;
+		height: auto;
+		min-height: 0;
+	}
+
+	.page-main__ux-panel-reveal .page-main__phone-frame {
+		max-width: min(12.5rem, 100%);
+		width: fit-content;
+	}
+
 	.page-main__ux-panel-reveal .page-main__image-placeholder__video {
-		max-height: min(42vh, 17rem);
+		max-height: min(52vh, 20rem);
+	}
+
+	/* WHO sticker — smaller on narrow viewports */
+	.page-main__placeholder-4-corner {
+		width: 48px;
+		height: 48px;
+		box-shadow:
+			0 0 0 3px #ffffff,
+			0 2px 8px color-mix(in srgb, var(--fg) 10%, transparent),
+			0 3px 14px color-mix(in srgb, var(--fg) 6%, transparent);
+	}
+
+	.page-main__placeholder-4-corner__mark {
+		width: 28px;
+		height: 28px;
+	}
+
+	.page-main__cs-link--ux-panel[data-media-loaded] ~ .page-main__placeholder-4-corner {
+		animation: who-badge-enter-mobile 0.55s cubic-bezier(0.25, 0.82, 0.35, 1) var(--page-main-panel-reveal-duration)
+			both;
 	}
 
 	/*

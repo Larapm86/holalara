@@ -694,44 +694,20 @@
 		outline-offset: 2px;
 	}
 
-	/* —— Mobile dialog —— */
+	/* —— Mobile / tablet dialog (only when .site-nav__mobile-bar is visible, ≤1024px) —— */
 	.site-nav__dialog {
-		margin: auto;
+		margin: 0;
 		padding: 0;
-		border: 1px solid var(--border-subtle);
-		border-radius: 10px;
+		border: none;
+		border-radius: 0;
 		background: var(--menu-surface, var(--bg));
 		color: var(--fg);
-		max-width: min(22rem, calc(100vw - 2rem));
 		width: 100%;
-		box-shadow: 0 16px 48px color-mix(in srgb, var(--fg) 12%, transparent);
-	}
-
-	/* Anchor panel under the hamburger (not centered) so it reads as one menu */
-	@media (max-width: 768px) {
-		.site-nav__dialog {
-			position: fixed;
-			inset: auto;
-			left: auto;
-			right: max(var(--page-margin, 16px), env(safe-area-inset-right, 0px));
-			top: calc(
-				var(--page-margin, 16px) + 2.75rem + 0.35rem + env(safe-area-inset-top, 0px)
-			);
-			bottom: auto;
-			margin: 0;
-			transform: none;
-			max-height: min(36rem, calc(100dvh - 5.5rem));
-			overflow-y: auto;
-			width: min(22rem, calc(100vw - 2 * var(--page-margin, 16px)));
-		}
+		max-width: none;
 	}
 
 	.site-nav__dialog::backdrop {
 		background: color-mix(in srgb, var(--fg) 32%, transparent);
-	}
-
-	.site-nav__dialog-inner {
-		padding: 1rem 1.1rem 1.25rem;
 	}
 
 	.site-nav__dialog-head {
@@ -739,18 +715,17 @@
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
-		margin-bottom: 1rem;
-		padding-bottom: 0.75rem;
-		border-bottom: 1px solid var(--border-subtle);
+		margin-bottom: 1.5rem;
+		padding-bottom: 0;
+		border-bottom: none;
 	}
 
 	.site-nav__dialog-title {
 		margin: 0;
-		font-size: 0.6875rem;
-		font-weight: 600;
-		letter-spacing: 0.14em;
-		text-transform: uppercase;
-		color: var(--text-muted);
+		font-size: 0.875rem;
+		font-weight: 500;
+		letter-spacing: -0.02em;
+		color: var(--fg);
 	}
 
 	.site-nav__dialog-close {
@@ -784,7 +759,7 @@
 		padding: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.25rem;
+		gap: 0.5rem;
 	}
 
 	.site-nav__dialog-list li {
@@ -799,8 +774,9 @@
 		margin: 0 -0.5rem;
 		border-radius: 6px;
 		color: inherit;
-		font-size: 1rem;
+		font-size: 0.875rem;
 		font-weight: 500;
+		letter-spacing: -0.02em;
 		text-decoration: none;
 	}
 
@@ -819,17 +795,16 @@
 	}
 
 	.site-nav__dialog-meta {
-		margin-top: 1.25rem;
-		padding-top: 1rem;
-		border-top: 1px solid var(--border-subtle);
+		margin-top: 1.5rem;
+		padding-top: 0;
+		border-top: none;
 	}
 
 	.site-nav__dialog-meta-label {
 		margin: 0 0 0.25rem;
-		font-size: 0.6875rem;
-		font-weight: 600;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		letter-spacing: -0.02em;
 		color: var(--text-muted);
 	}
 
@@ -841,12 +816,48 @@
 	}
 
 	.site-nav__dialog-time {
-		font-size: 1.125rem;
+		font-size: 0.875rem;
+		font-weight: 500;
+		letter-spacing: -0.02em;
 		font-variant-numeric: tabular-nums;
 		color: var(--fg);
 	}
 
-	@media (min-width: 769px) {
+	@media (max-width: 1024px) {
+		.site-nav__dialog {
+			position: fixed;
+			inset: 0;
+			width: 100%;
+			max-width: none;
+			height: 100%;
+			min-height: 100dvh;
+			max-height: none;
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+			box-shadow: none;
+		}
+
+		.site-nav__dialog-inner {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			min-height: 0;
+			overflow-y: auto;
+			-webkit-overflow-scrolling: touch;
+			padding-top: calc(var(--page-margin) + env(safe-area-inset-top, 0px));
+			padding-bottom: calc(var(--page-margin) + env(safe-area-inset-bottom, 0px));
+			padding-left: max(var(--page-margin), env(safe-area-inset-left, 0px));
+			padding-right: max(var(--page-margin), env(safe-area-inset-right, 0px));
+		}
+
+		.site-nav__dialog-meta {
+			margin-top: auto;
+			padding-top: 1.5rem;
+		}
+	}
+
+	@media (min-width: 1025px) {
 		.site-nav__desktop {
 			display: grid;
 		}
