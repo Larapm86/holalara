@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<script>
+			(function () {
+				try {
+					var k = 'holalara-theme';
+					var allowed = ['light', 'dark', 'pink', 'blue', 'purple', 'yellow', 'green'];
+					var t = localStorage.getItem(k);
+					if (t && allowed.indexOf(t) !== -1) document.documentElement.dataset.theme = t;
+				} catch (e) {}
+			})();
+		</script>
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="text-scale" content="scale" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+			rel="stylesheet"
+		/>
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

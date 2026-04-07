@@ -1,0 +1,1981 @@
+:root {
+	--page-margin: 16px;
+	--grid-columns: 14;
+	--grid-gap: 16px;
+	/* TV static burst on theme change (TvStaticBackground.svelte); accent = overlay blend */
+	--tv-static-burst-opacity: 0.24;
+	/* light / dark / default: softer on flat neutrals */
+	--tv-static-burst-opacity-neutral: 0.14;
+	/* Default fade (all transitions) */
+	--tv-static-fade-ms: 1500;
+	--tv-static-fade-easing: cubic-bezier(0.22, 0.06, 0.18, 1);
+	/* Extra-soft profile: accent→light, light↔dark — visible grain, then long ease */
+	--tv-static-fade-ms-soft: 2100;
+	--tv-static-fade-easing-soft: cubic-bezier(0.2, 0.05, 0.15, 1);
+	--tv-static-burst-opacity-neutral-soft: 0.22;
+	/* Readable burst before fade (extra-soft holds longer so the effect is obvious) */
+	--tv-static-burst-hold-ms: 56;
+	--tv-static-burst-hold-ms-soft: 200;
+	/* Main grid: case-study strip = 4 row tracks (+ gaps); fifth = 3 rows; sixth–seventh = 4 rows; eighth = 5 rows */
+	--page-main-row-height: 3.5rem;
+	--page-main-strip-height: calc(4 * var(--page-main-row-height) + 3 * var(--grid-gap));
+	/* Fifth placeholder: three main-grid row tracks + two gaps */
+	--page-main-placeholder-5-height: calc(3 * var(--page-main-row-height) + 2 * var(--grid-gap));
+	/* Sixth–seventh placeholders: four row tracks + three gaps */
+	--page-main-placeholder-678-height: calc(4 * var(--page-main-row-height) + 3 * var(--grid-gap));
+	/* Eighth placeholder: five row tracks + four gaps (one row taller than 6–7) */
+	--page-main-placeholder-8-height: calc(5 * var(--page-main-row-height) + 4 * var(--grid-gap));
+	/* Masked panel reveal + WHO sticker delay (must match transition below) */
+	--page-main-panel-reveal-duration: 1.05s;
+	/* Phone-frame video — width/radius; outline uses off-black (not pure #000) */
+	--phone-bezel-width: 6px;
+	--phone-frame-radius: 24px;
+	--phone-bezel-outline: #2a2a2a;
+	/* Lottie + video placeholders — light fallback only; glass on dark + accents via `html` */
+	--placeholder-lottie-bg: color-mix(in srgb, #f0f0f0 90%, #fafafa 10%);
+	/* Case-study hover: inactive pair = frost (::after) */
+	--placeholder-cs-frost-duration: 220ms;
+	/* Smooth ease-out — softer than --tv-static-fade-easing for frost opacity ramp */
+	--placeholder-cs-frost-easing: cubic-bezier(0.25, 0.08, 0.22, 1);
+	--placeholder-cs-frost-blur: 18px;
+	--placeholder-cs-frost-saturate: 1.3;
+}
+
+/* Default (light) — also set explicitly on html */
+html {
+	--bg: #fafafa;
+	--fg: #0a0a0a;
+	--text-muted: #737373;
+	--border-subtle: rgba(10, 10, 10, 0.1);
+	--accent-dot: #0a0a0a;
+	--focus-ring: #2563eb;
+	/* Device frame reads on light neutrals */
+	--phone-bezel: #161616;
+	--phone-frame-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+	--placeholder-lottie-bg: color-mix(in srgb, #f0f0f0 88%, var(--bg) 12%);
+	color-scheme: light;
+}
+
+html[data-theme='light'] {
+	--bg: #fafafa;
+	--fg: #0a0a0a;
+	--text-muted: #737373;
+	--border-subtle: rgba(10, 10, 10, 0.1);
+	--accent-dot: #0a0a0a;
+	--focus-ring: #2563eb;
+	--phone-bezel: #161616;
+	--phone-frame-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+	--placeholder-lottie-bg: color-mix(in srgb, #f0f0f0 88%, var(--bg) 12%);
+	color-scheme: light;
+}
+
+html[data-theme='dark'] {
+	--bg: #0c0c0c;
+	--fg: #f5f5f5;
+	--text-muted: #a3a3a3;
+	--border-subtle: rgba(255, 255, 255, 0.12);
+	--accent-dot: #f5f5f5;
+	--focus-ring: #93c5fd;
+	/* Lighter bezel so the frame is visible on near-black page bg */
+	--phone-bezel: #5a5a5a;
+	/* Off-black ring still visible on frosted placeholder panels */
+	--phone-bezel-outline: #4a4a4a;
+	--phone-frame-shadow: 0 6px 22px rgba(0, 0, 0, 0.55);
+	--placeholder-lottie-blur: 22px;
+	--placeholder-lottie-saturate: 1.45;
+	/* Closer to --bg: lighter veil so section shows through more */
+	--placeholder-lottie-bg: color-mix(in srgb, #ffffff 6%, transparent 94%);
+	color-scheme: dark;
+}
+
+/* Accent themes: max saturation; body text matches near-black “bold as black” */
+html[data-theme='pink'] {
+	--bg: #ff7eb3;
+	--fg: #0a0a0a;
+	--text-muted: #7f1d1d;
+	--border-subtle: rgba(10, 10, 10, 0.28);
+	--accent-dot: #be123c;
+	--focus-ring: #9f1239;
+	--phone-bezel: color-mix(in srgb, var(--fg) 82%, #3b0618 18%);
+	color-scheme: light;
+}
+
+html[data-theme='blue'] {
+	--bg: #38bdf8;
+	--fg: #0a0a0a;
+	--text-muted: #1e3a8a;
+	--border-subtle: rgba(10, 10, 10, 0.26);
+	--accent-dot: #1d4ed8;
+	--focus-ring: #1e40af;
+	--phone-bezel: color-mix(in srgb, var(--fg) 78%, #0c4a6e 22%);
+	color-scheme: light;
+}
+
+html[data-theme='purple'] {
+	--bg: #a78bfa;
+	--fg: #0a0a0a;
+	--text-muted: #4c1d95;
+	--border-subtle: rgba(10, 10, 10, 0.26);
+	--accent-dot: #6d28d9;
+	--focus-ring: #5b21b6;
+	--phone-bezel: color-mix(in srgb, var(--fg) 78%, #3b0764 22%);
+	color-scheme: light;
+}
+
+html[data-theme='yellow'] {
+	--bg: #facc15;
+	--fg: #0a0a0a;
+	--text-muted: #713f12;
+	--border-subtle: rgba(10, 10, 10, 0.28);
+	--accent-dot: #a16207;
+	--focus-ring: #854d0e;
+	--phone-bezel: color-mix(in srgb, var(--fg) 80%, #713f12 20%);
+	color-scheme: light;
+}
+
+html[data-theme='green'] {
+	--bg: #4ade80;
+	--fg: #0a0a0a;
+	--text-muted: #065f46;
+	--border-subtle: rgba(10, 10, 10, 0.26);
+	--accent-dot: #047857;
+	--focus-ring: #065f46;
+	--phone-bezel: color-mix(in srgb, var(--fg) 78%, #064e3b 22%);
+	color-scheme: light;
+}
+
+html[data-theme='pink'],
+html[data-theme='blue'],
+html[data-theme='purple'],
+html[data-theme='yellow'],
+html[data-theme='green'] {
+	--phone-frame-shadow: 0 4px 18px rgba(0, 0, 0, 0.14);
+	--placeholder-lottie-blur: 20px;
+	--placeholder-lottie-saturate: 1.42;
+	/* Frosted veil: more transparent — closer to section --bg */
+	--placeholder-lottie-bg: color-mix(
+		in srgb,
+		color-mix(in srgb, #ffffff 38%, var(--bg) 62%) 30%,
+		transparent 70%
+	);
+	--placeholder-cs-frost-duration: 240ms;
+	--placeholder-cs-frost-easing: var(--tv-static-fade-easing-soft);
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	min-height: 100%;
+}
+
+body {
+	font-family:
+		system-ui,
+		-apple-system,
+		'Segoe UI',
+		sans-serif;
+	background: var(--bg);
+	color: var(--fg);
+	transition:
+		background 0.2s ease,
+		color 0.2s ease;
+}
+
+/* ReadMoreCursor.svelte: hide system cursor when custom dot / Read more follower is active */
+html[data-custom-cursor],
+html[data-custom-cursor] body {
+	cursor: none !important;
+}
+
+/* Descendants often set cursor:pointer / help — override so only the dot shows */
+html[data-custom-cursor] * {
+	cursor: none !important;
+}
+
+html[data-custom-cursor] input,
+html[data-custom-cursor] textarea,
+html[data-custom-cursor] select,
+html[data-custom-cursor] [contenteditable='true'] {
+	cursor: text !important;
+}
+
+/*
+ * First paint: fade + slight rise (ease-out). Lenis handles smooth *scrolling* separately.
+ * Name: page-shell-enter — cubic-bezier(0.22, 1, 0.36, 1), 0.85s, fill-mode both.
+ */
+@keyframes page-shell-enter {
+	from {
+		opacity: 0;
+		transform: translate3d(0, 0.6rem, 0);
+	}
+	to {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+}
+
+/* Outer inset: 16px on all sides — above fixed TV static canvas (z-index: 1) */
+.page-shell {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	flex-direction: column;
+	min-height: 100dvh;
+	padding: var(--page-margin);
+	animation: page-shell-enter 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.page-shell > main.page-main {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.page-shell {
+		animation: none;
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* —— View Transitions API (Chromium / Safari 18+) — editorial cross-fade + slight drift —— */
+:root {
+	--vt-duration: 0.88s;
+	--vt-ease: cubic-bezier(0.2, 0.72, 0.12, 1);
+	--vt-drift: 12px;
+}
+
+/* Forward: main → index (leave up / enter from below) */
+@keyframes vt-forward-old {
+	from {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+	to {
+		opacity: 0;
+		transform: translate3d(0, calc(-1 * var(--vt-drift)), 0);
+	}
+}
+
+@keyframes vt-forward-new {
+	from {
+		opacity: 0;
+		transform: translate3d(0, var(--vt-drift), 0);
+	}
+	to {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+}
+
+/* Reverse: index → main (leave down / enter from above) */
+@keyframes vt-reverse-old {
+	from {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+	to {
+		opacity: 0;
+		transform: translate3d(0, var(--vt-drift), 0);
+	}
+}
+
+@keyframes vt-reverse-new {
+	from {
+		opacity: 0;
+		transform: translate3d(0, calc(-1 * var(--vt-drift)), 0);
+	}
+	to {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+}
+
+/* Other internal navigations — symmetric soft cross-fade */
+@keyframes vt-default-old {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes vt-default-new {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@supports (view-transition-name: none) {
+	/* Whole `page-shell` (nav + main) shares one root snapshot — reliable + portfolio-like */
+
+	html[data-vt-dir='forward']::view-transition-old(root) {
+		animation: vt-forward-old var(--vt-duration) var(--vt-ease) both;
+	}
+
+	html[data-vt-dir='forward']::view-transition-new(root) {
+		animation: vt-forward-new var(--vt-duration) var(--vt-ease) both;
+	}
+
+	html[data-vt-dir='reverse']::view-transition-old(root) {
+		animation: vt-reverse-old var(--vt-duration) var(--vt-ease) both;
+	}
+
+	html[data-vt-dir='reverse']::view-transition-new(root) {
+		animation: vt-reverse-new var(--vt-duration) var(--vt-ease) both;
+	}
+
+	html[data-vt-dir='default']::view-transition-old(root) {
+		animation: vt-default-old calc(var(--vt-duration) * 0.85) var(--vt-ease) both;
+	}
+
+	html[data-vt-dir='default']::view-transition-new(root) {
+		animation: vt-default-new calc(var(--vt-duration) * 0.85) var(--vt-ease) both;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	@supports (view-transition-name: none) {
+		html[data-vt-dir]::view-transition-old(root),
+		html[data-vt-dir]::view-transition-new(root) {
+			animation-duration: 0.01ms !important;
+		}
+	}
+}
+
+/* 14 equal columns; children use grid-column */
+.grid-14 {
+	display: grid;
+	grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+	column-gap: var(--grid-gap);
+	row-gap: var(--grid-gap);
+	width: 100%;
+	min-height: 0;
+}
+
+/*
+ * Row 1 = page slot. Row 2 = spacer.
+ * Rows 3–6 = strip placeholders 1–4. Row 7 = spacer. Rows 8–12 = first lower band (5–8); 8th spans 5 rows.
+ * Row 13 = spacer between lower bands. Rows 14–17 = second lower band: 9–11 (9–10 cols 3–8; 11 cols 11–13 after 2 empty).
+ * Row 18 = extra rhythm row below 9–11. Row 19 = site footer.
+ */
+.page-main.grid-14 {
+	grid-template-rows:
+		auto
+		minmax(var(--page-main-row-height), auto)
+		repeat(4, minmax(var(--page-main-row-height), auto))
+		minmax(var(--page-main-row-height), auto)
+		repeat(5, minmax(var(--page-main-row-height), auto))
+		minmax(var(--page-main-row-height), auto)
+		repeat(4, minmax(var(--page-main-row-height), auto))
+		minmax(0, 1fr)
+		minmax(var(--page-main-row-height), auto);
+}
+
+/*
+ * /index, /about, /work/* — same 14-column grid + row banding as home:
+ * row 1 = slot (nested grid-14), row 2 = spacer (nav rhythm), row 3 = flex grow, row 4 = footer.
+ */
+.page-main.page-main--route.grid-14 {
+	display: grid;
+	grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+	column-gap: var(--grid-gap);
+	row-gap: var(--grid-gap);
+	grid-template-rows:
+		auto
+		minmax(var(--page-main-row-height), auto)
+		minmax(0, 1fr)
+		minmax(var(--page-main-row-height), auto);
+	min-height: 0;
+	align-content: start;
+}
+
+/*
+ * Route slot: inherit the main 14-column track sizes from the parent grid so content lines up
+ * with SiteNav (subgrid). Fallback repeats the same template when subgrid isn’t available.
+ */
+.page-main.page-main--route .page-main__slot {
+	display: grid;
+	grid-template-columns: subgrid;
+	grid-column: 1 / -1;
+	grid-row: 1;
+	align-content: start;
+	min-width: 0;
+	min-height: 0;
+}
+
+@supports not (grid-template-columns: subgrid) {
+	.page-main.page-main--route .page-main__slot {
+		grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+	}
+}
+
+/*
+ * /index — cols 6–14 with site subgrid; row rhythm matches home (spacer band + one row per line).
+ * Do not use display:contents on <ul> — in several engines <li> never becomes a grid item and all lines collapse.
+ * Rows: section = [nav spacer][list block]; each <li> is its own row inside the list grid.
+ * Client label is inline immediately after each case study title (same flow; block aligns with Index at col 6).
+ */
+.page-main.page-main--route .page-main__slot .index-cs {
+	grid-column: 6 / -1;
+	min-width: 0;
+	display: grid;
+	grid-template-columns: subgrid;
+	grid-template-rows: var(--page-main-row-height) auto;
+	row-gap: var(--grid-gap);
+	align-content: start;
+}
+
+.page-main.page-main--route .page-main__slot .index-cs__nav-spacer {
+	grid-column: 1 / -1;
+	grid-row: 1;
+	min-height: var(--page-main-row-height);
+	pointer-events: none;
+}
+
+.page-main.page-main--route .page-main__slot .index-cs__list {
+	display: grid;
+	grid-template-columns: subgrid;
+	grid-column: 1 / -1;
+	grid-row: 2;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	row-gap: var(--grid-gap);
+	grid-auto-rows: minmax(var(--page-main-row-height), auto);
+	align-content: start;
+}
+
+.page-main.page-main--route .page-main__slot .index-cs__item {
+	display: grid;
+	grid-template-columns: subgrid;
+	grid-column: 1 / -1;
+	min-width: 0;
+	min-height: 0;
+	align-items: center;
+	box-sizing: border-box;
+}
+
+@supports not (grid-template-columns: subgrid) {
+	.page-main.page-main--route .page-main__slot .index-cs {
+		display: block;
+		padding-top: calc(var(--page-main-row-height) + var(--grid-gap));
+		grid-template-rows: none;
+		grid-auto-rows: unset;
+	}
+
+	.page-main.page-main--route .page-main__slot .index-cs__nav-spacer {
+		display: none;
+	}
+
+	.page-main.page-main--route .page-main__slot .index-cs__list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--grid-gap);
+	}
+
+	.page-main.page-main--route .page-main__slot .index-cs__item {
+		display: block;
+		min-height: 0;
+	}
+}
+
+.page-main.page-main--route .page-main__slot .about-page {
+	grid-column: 7 / -1;
+	min-width: 0;
+}
+
+@media (max-width: 768px) {
+	.page-main.page-main--route .page-main__slot .index-cs,
+	.page-main.page-main--route .page-main__slot .about-page {
+		grid-column: 1 / -1;
+	}
+
+	.page-main.page-main--route .page-main__slot .index-cs {
+		display: block;
+		padding-top: calc(var(--page-main-row-height) + var(--grid-gap));
+	}
+
+	.page-main.page-main--route .page-main__slot .index-cs__nav-spacer {
+		display: none;
+	}
+
+	.page-main.page-main--route .page-main__slot .index-cs__list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--grid-gap);
+	}
+
+	.page-main.page-main--route .page-main__slot .index-cs__item {
+		display: block;
+		min-height: 0;
+	}
+}
+
+.page-main.page-main--route .page-main__row-spacer {
+	grid-column: 1 / -1;
+	grid-row: 2;
+}
+
+.page-main__route-fill {
+	grid-column: 1 / -1;
+	grid-row: 3;
+	min-width: 0;
+	min-height: 0;
+	pointer-events: none;
+}
+
+.page-main.page-main--route .site-footer.grid-14 {
+	grid-column: 1 / -1;
+	grid-row: 4;
+	margin-top: 0;
+	width: 100%;
+	align-self: stretch;
+}
+
+/* Work case-study pages: span full width of the route slot grid */
+.page-main.page-main--route .page-main__slot .case-study-page {
+	grid-column: 1 / -1;
+	min-width: 0;
+}
+
+.page-main__row-spacer {
+	grid-column: 1 / -1;
+	grid-row: 2;
+	min-width: 0;
+	min-height: 0;
+	pointer-events: none;
+}
+
+.page-main__row-spacer--strip-fifth {
+	grid-column: 1 / -1;
+	grid-row: 7;
+	min-width: 0;
+	min-height: 0;
+	pointer-events: none;
+}
+
+.page-main__row-spacer--lower-bands {
+	grid-column: 1 / -1;
+	grid-row: 13;
+	min-width: 0;
+	min-height: 0;
+	pointer-events: none;
+}
+
+/*
+ * 13 cols of main grid: Lottie 3 + video 2 + gap 1 + strategy image 4 + video 3.
+ */
+.page-main__placeholders {
+	grid-column: 1 / span 13;
+	grid-row: 3 / span 4;
+	display: grid;
+	grid-template-columns: 3fr 2fr 1fr 4fr 3fr;
+	column-gap: var(--grid-gap);
+	row-gap: 0;
+	align-items: stretch;
+	min-width: 0;
+	/* Main grid rows 3–6 (four tracks + three row-gaps) */
+	min-height: var(--page-main-strip-height);
+	max-height: var(--page-main-strip-height);
+	/* Allow UX maturity corner badge to sit outside panel (panels clip their own content) */
+	overflow: visible;
+}
+
+.page-main__placeholders-gap {
+	min-width: 0;
+	min-height: 0;
+	pointer-events: none;
+}
+
+/* Fifth placeholder: column 2, spans 3 cols × 3 rows (shorter than 6–8) */
+.page-main__placeholder-5 {
+	grid-column: 2 / span 3;
+	grid-row: 8 / span 3;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: var(--page-main-placeholder-5-height);
+	max-height: var(--page-main-placeholder-5-height);
+	align-self: stretch;
+	position: relative;
+	z-index: 12;
+}
+
+/* Sixth placeholder: beside fifth — columns 5–7, same 4-row band */
+.page-main__placeholder-6 {
+	grid-column: 5 / span 3;
+	grid-row: 8 / span 4;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: var(--page-main-placeholder-678-height);
+	max-height: var(--page-main-placeholder-678-height);
+	align-self: stretch;
+	position: relative;
+	z-index: 12;
+}
+
+/* Seventh: columns 10–12 (3 cols after 2 empty cols past 6th); eighth: columns 13–14 (2 cols) */
+.page-main__placeholder-7 {
+	grid-column: 10 / span 3;
+	grid-row: 8 / span 4;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: var(--page-main-placeholder-678-height);
+	max-height: var(--page-main-placeholder-678-height);
+	align-self: stretch;
+	position: relative;
+	z-index: 12;
+}
+
+.page-main__placeholder-8 {
+	grid-column: 13 / span 2;
+	grid-row: 8 / span 5;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: var(--page-main-placeholder-8-height);
+	max-height: var(--page-main-placeholder-8-height);
+	align-self: stretch;
+	position: relative;
+	z-index: 12;
+}
+
+/* Ninth / tenth: two empty cols on the left, then 4 cols + 2 cols (lines 3–8), rows 14–17 */
+.page-main__placeholder-9 {
+	grid-column: 3 / span 4;
+	grid-row: 14 / span 4;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: var(--page-main-placeholder-678-height);
+	max-height: var(--page-main-placeholder-678-height);
+	align-self: stretch;
+	position: relative;
+	z-index: 12;
+}
+
+.page-main__placeholder-10 {
+	grid-column: 7 / span 2;
+	grid-row: 14 / span 4;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: var(--page-main-placeholder-678-height);
+	max-height: var(--page-main-placeholder-678-height);
+	align-self: stretch;
+	position: relative;
+	z-index: 12;
+}
+
+/* Eleventh: 2 empty cols after 10th (cols 9–10), then 3 cols × 4 rows */
+.page-main__placeholder-11 {
+	grid-column: 11 / span 3;
+	grid-row: 14 / span 4;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: var(--page-main-placeholder-678-height);
+	max-height: var(--page-main-placeholder-678-height);
+	align-self: stretch;
+	position: relative;
+	z-index: 12;
+}
+
+/* Last grid row: copyright (left); LinkedIn + Email aligned with nav About (col 7) */
+.site-footer.grid-14 {
+	grid-column: 1 / -1;
+	grid-row: 19;
+	align-items: end;
+	min-height: var(--page-main-row-height);
+	min-width: 0;
+	position: relative;
+	z-index: 55;
+	text-align: left;
+}
+
+.site-footer__copyright {
+	grid-column: 1 / 7;
+	min-width: 0;
+}
+
+.site-footer__social {
+	grid-column: 7 / span 2;
+	justify-self: start;
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.2rem;
+	font-size: 0.875rem;
+	font-weight: 500;
+	letter-spacing: -0.02em;
+}
+
+.site-footer__link {
+	color: inherit;
+	text-decoration: none;
+	transition: opacity 0.2s ease;
+}
+
+.site-footer__link:hover {
+	opacity: 0.72;
+}
+
+/* Comma + word space; neutral letter-spacing so punctuation reads like normal body copy */
+.site-footer__sep {
+	color: var(--text-muted);
+	user-select: none;
+	letter-spacing: normal;
+}
+
+.site-footer__swap {
+	position: relative;
+	display: inline-block;
+	max-width: min(42rem, 100%);
+	text-align: left;
+	vertical-align: top;
+}
+
+/* Hit target for scramble + crossfade is the copyright control only, not the full footer row */
+.site-footer__trigger {
+	display: inline;
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: none;
+	font: inherit;
+	color: inherit;
+	text-align: inherit;
+	cursor: default;
+	line-height: inherit;
+	letter-spacing: inherit;
+}
+
+.site-footer__default,
+.site-footer__hover {
+	margin: 0;
+	font-size: 0.8125rem;
+	font-weight: 400;
+	line-height: 1.25;
+	letter-spacing: 0.01em;
+	transition: opacity 0.28s cubic-bezier(0.22, 1, 0.32, 1);
+}
+
+.site-footer__default {
+	color: var(--fg);
+}
+
+.site-footer__hover {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	opacity: 0;
+	color: var(--text-muted);
+	pointer-events: none;
+	font-family: inherit;
+	font-variant-numeric: normal;
+}
+
+.site-footer__swap:has(.site-footer__trigger:hover) .site-footer__default {
+	opacity: 0;
+}
+
+.site-footer__swap:has(.site-footer__trigger:hover) .site-footer__hover {
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.site-footer__default,
+	.site-footer__hover {
+		transition-duration: 0.01ms;
+	}
+}
+
+/* Single surface (same glass as other placeholders); Lottie centered like strip panels */
+.page-main__placeholder-5 .page-main__placeholder-5-panel.page-main__image-placeholder--lottie,
+.page-main__placeholder-6 .page-main__placeholder-6-panel.page-main__image-placeholder--lottie,
+.page-main__placeholder-7 .page-main__placeholder-7-panel.page-main__image-placeholder--lottie,
+.page-main__placeholder-8 .page-main__placeholder-8-panel.page-main__image-placeholder--lottie,
+.page-main__placeholder-9 .page-main__placeholder-9-panel.page-main__image-placeholder--lottie,
+.page-main__placeholder-10 .page-main__placeholder-10-panel.page-main__image-placeholder--lottie,
+.page-main__placeholder-11 .page-main__placeholder-11-panel.page-main__image-placeholder--lottie {
+	flex: 1 1 auto;
+	min-height: 0;
+	height: 100%;
+	align-items: center;
+	justify-content: center;
+}
+
+/* Inactive case-study panels = glass frost ::after; active hover/focus group stays clear (see rules below) */
+.page-main__cs-link::after,
+.page-main__placeholder-5::after,
+.page-main__placeholder-6::after,
+.page-main__placeholder-7::after,
+.page-main__placeholder-8::after,
+.page-main__placeholder-9::after,
+.page-main__placeholder-10::after,
+.page-main__placeholder-11::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity var(--placeholder-cs-frost-duration) var(--placeholder-cs-frost-easing);
+	backdrop-filter: blur(var(--placeholder-cs-frost-blur)) saturate(var(--placeholder-cs-frost-saturate));
+	-webkit-backdrop-filter: blur(var(--placeholder-cs-frost-blur)) saturate(var(--placeholder-cs-frost-saturate));
+	background: color-mix(in srgb, var(--bg) 42%, transparent);
+}
+
+.page-main__placeholders:has(.page-main__cs-link--a:hover) .page-main__cs-link--b::after,
+.page-main__placeholders:has(.page-main__cs-link--a:focus-within) .page-main__cs-link--b::after {
+	opacity: 1;
+}
+
+.page-main__placeholders:has(.page-main__cs-link--b:hover) .page-main__cs-link--a::after,
+.page-main__placeholders:has(.page-main__cs-link--b:focus-within) .page-main__cs-link--a::after {
+	opacity: 1;
+}
+
+/*
+ * Glass frost on inactive panels only: the hovered / focused case study stays clear.
+ * Strip A/B: opposite pair + full lower band. Lower bands: strip + other placeholders.
+ */
+.page-main:has(.page-main__cs-link--a:hover) .page-main__placeholder-5::after,
+.page-main:has(.page-main__cs-link--a:focus-within) .page-main__placeholder-5::after,
+.page-main:has(.page-main__cs-link--a:hover) .page-main__placeholder-6::after,
+.page-main:has(.page-main__cs-link--a:focus-within) .page-main__placeholder-6::after,
+.page-main:has(.page-main__cs-link--a:hover) .page-main__placeholder-7::after,
+.page-main:has(.page-main__cs-link--a:focus-within) .page-main__placeholder-7::after,
+.page-main:has(.page-main__cs-link--a:hover) .page-main__placeholder-8::after,
+.page-main:has(.page-main__cs-link--a:focus-within) .page-main__placeholder-8::after,
+.page-main:has(.page-main__cs-link--a:hover) .page-main__placeholder-9::after,
+.page-main:has(.page-main__cs-link--a:focus-within) .page-main__placeholder-9::after,
+.page-main:has(.page-main__cs-link--a:hover) .page-main__placeholder-10::after,
+.page-main:has(.page-main__cs-link--a:focus-within) .page-main__placeholder-10::after,
+.page-main:has(.page-main__cs-link--a:hover) .page-main__placeholder-11::after,
+.page-main:has(.page-main__cs-link--a:focus-within) .page-main__placeholder-11::after,
+.page-main:has(.page-main__cs-link--b:hover) .page-main__placeholder-5::after,
+.page-main:has(.page-main__cs-link--b:focus-within) .page-main__placeholder-5::after,
+.page-main:has(.page-main__cs-link--b:hover) .page-main__placeholder-6::after,
+.page-main:has(.page-main__cs-link--b:focus-within) .page-main__placeholder-6::after,
+.page-main:has(.page-main__cs-link--b:hover) .page-main__placeholder-7::after,
+.page-main:has(.page-main__cs-link--b:focus-within) .page-main__placeholder-7::after,
+.page-main:has(.page-main__cs-link--b:hover) .page-main__placeholder-8::after,
+.page-main:has(.page-main__cs-link--b:focus-within) .page-main__placeholder-8::after,
+.page-main:has(.page-main__cs-link--b:hover) .page-main__placeholder-9::after,
+.page-main:has(.page-main__cs-link--b:focus-within) .page-main__placeholder-9::after,
+.page-main:has(.page-main__cs-link--b:hover) .page-main__placeholder-10::after,
+.page-main:has(.page-main__cs-link--b:focus-within) .page-main__placeholder-10::after,
+.page-main:has(.page-main__cs-link--b:hover) .page-main__placeholder-11::after,
+.page-main:has(.page-main__cs-link--b:focus-within) .page-main__placeholder-11::after {
+	opacity: 1;
+}
+
+.page-main:has(.page-main__cs-link--kwit:hover) .page-main__cs-link--a::after,
+.page-main:has(.page-main__cs-link--kwit:focus-within) .page-main__cs-link--a::after,
+.page-main:has(.page-main__cs-link--kwit:hover) .page-main__cs-link--b::after,
+.page-main:has(.page-main__cs-link--kwit:focus-within) .page-main__cs-link--b::after,
+.page-main:has(.page-main__cs-link--kwit:hover) .page-main__placeholder-7::after,
+.page-main:has(.page-main__cs-link--kwit:focus-within) .page-main__placeholder-7::after,
+.page-main:has(.page-main__cs-link--kwit:hover) .page-main__placeholder-8::after,
+.page-main:has(.page-main__cs-link--kwit:focus-within) .page-main__placeholder-8::after,
+.page-main:has(.page-main__cs-link--kwit:hover) .page-main__placeholder-9::after,
+.page-main:has(.page-main__cs-link--kwit:focus-within) .page-main__placeholder-9::after,
+.page-main:has(.page-main__cs-link--kwit:hover) .page-main__placeholder-10::after,
+.page-main:has(.page-main__cs-link--kwit:focus-within) .page-main__placeholder-10::after,
+.page-main:has(.page-main__cs-link--kwit:hover) .page-main__placeholder-11::after,
+.page-main:has(.page-main__cs-link--kwit:focus-within) .page-main__placeholder-11::after {
+	opacity: 1;
+}
+
+.page-main:has(.page-main__cs-link--yazio:hover) .page-main__cs-link--a::after,
+.page-main:has(.page-main__cs-link--yazio:focus-within) .page-main__cs-link--a::after,
+.page-main:has(.page-main__cs-link--yazio:hover) .page-main__cs-link--b::after,
+.page-main:has(.page-main__cs-link--yazio:focus-within) .page-main__cs-link--b::after,
+.page-main:has(.page-main__cs-link--yazio:hover) .page-main__placeholder-5::after,
+.page-main:has(.page-main__cs-link--yazio:focus-within) .page-main__placeholder-5::after,
+.page-main:has(.page-main__cs-link--yazio:hover) .page-main__placeholder-6::after,
+.page-main:has(.page-main__cs-link--yazio:focus-within) .page-main__placeholder-6::after,
+.page-main:has(.page-main__cs-link--yazio:hover) .page-main__placeholder-9::after,
+.page-main:has(.page-main__cs-link--yazio:focus-within) .page-main__placeholder-9::after,
+.page-main:has(.page-main__cs-link--yazio:hover) .page-main__placeholder-10::after,
+.page-main:has(.page-main__cs-link--yazio:focus-within) .page-main__placeholder-10::after,
+.page-main:has(.page-main__cs-link--yazio:hover) .page-main__placeholder-11::after,
+.page-main:has(.page-main__cs-link--yazio:focus-within) .page-main__placeholder-11::after {
+	opacity: 1;
+}
+
+.page-main:has(.page-main__cs-link--time-to-value:hover) .page-main__cs-link--a::after,
+.page-main:has(.page-main__cs-link--time-to-value:focus-within) .page-main__cs-link--a::after,
+.page-main:has(.page-main__cs-link--time-to-value:hover) .page-main__cs-link--b::after,
+.page-main:has(.page-main__cs-link--time-to-value:focus-within) .page-main__cs-link--b::after,
+.page-main:has(.page-main__cs-link--time-to-value:hover) .page-main__placeholder-5::after,
+.page-main:has(.page-main__cs-link--time-to-value:focus-within) .page-main__placeholder-5::after,
+.page-main:has(.page-main__cs-link--time-to-value:hover) .page-main__placeholder-6::after,
+.page-main:has(.page-main__cs-link--time-to-value:focus-within) .page-main__placeholder-6::after,
+.page-main:has(.page-main__cs-link--time-to-value:hover) .page-main__placeholder-7::after,
+.page-main:has(.page-main__cs-link--time-to-value:focus-within) .page-main__placeholder-7::after,
+.page-main:has(.page-main__cs-link--time-to-value:hover) .page-main__placeholder-8::after,
+.page-main:has(.page-main__cs-link--time-to-value:focus-within) .page-main__placeholder-8::after,
+.page-main:has(.page-main__cs-link--time-to-value:hover) .page-main__placeholder-11::after,
+.page-main:has(.page-main__cs-link--time-to-value:focus-within) .page-main__placeholder-11::after {
+	opacity: 1;
+}
+
+.page-main:has(.page-main__cs-link--systemic-growth:hover) .page-main__cs-link--a::after,
+.page-main:has(.page-main__cs-link--systemic-growth:focus-within) .page-main__cs-link--a::after,
+.page-main:has(.page-main__cs-link--systemic-growth:hover) .page-main__cs-link--b::after,
+.page-main:has(.page-main__cs-link--systemic-growth:focus-within) .page-main__cs-link--b::after,
+.page-main:has(.page-main__cs-link--systemic-growth:hover) .page-main__placeholder-5::after,
+.page-main:has(.page-main__cs-link--systemic-growth:focus-within) .page-main__placeholder-5::after,
+.page-main:has(.page-main__cs-link--systemic-growth:hover) .page-main__placeholder-6::after,
+.page-main:has(.page-main__cs-link--systemic-growth:focus-within) .page-main__placeholder-6::after,
+.page-main:has(.page-main__cs-link--systemic-growth:hover) .page-main__placeholder-7::after,
+.page-main:has(.page-main__cs-link--systemic-growth:focus-within) .page-main__placeholder-7::after,
+.page-main:has(.page-main__cs-link--systemic-growth:hover) .page-main__placeholder-8::after,
+.page-main:has(.page-main__cs-link--systemic-growth:focus-within) .page-main__placeholder-8::after,
+.page-main:has(.page-main__cs-link--systemic-growth:hover) .page-main__placeholder-9::after,
+.page-main:has(.page-main__cs-link--systemic-growth:focus-within) .page-main__placeholder-9::after,
+.page-main:has(.page-main__cs-link--systemic-growth:hover) .page-main__placeholder-10::after,
+.page-main:has(.page-main__cs-link--systemic-growth:focus-within) .page-main__placeholder-10::after {
+	opacity: 1;
+}
+
+/* WHO sticker on 3rd/4th: hide when any other case study (1–2 or lower band) is hovered/focused */
+.page-main__placeholders:has(.page-main__cs-link--a:hover) .page-main__placeholder-4-corner,
+.page-main__placeholders:has(.page-main__cs-link--a:focus-within) .page-main__placeholder-4-corner,
+.page-main:has(.page-main__cs-link--kwit:hover) .page-main__placeholder-4-corner,
+.page-main:has(.page-main__cs-link--kwit:focus-within) .page-main__placeholder-4-corner,
+.page-main:has(.page-main__cs-link--yazio:hover) .page-main__placeholder-4-corner,
+.page-main:has(.page-main__cs-link--yazio:focus-within) .page-main__placeholder-4-corner,
+.page-main:has(.page-main__cs-link--time-to-value:hover) .page-main__placeholder-4-corner,
+.page-main:has(.page-main__cs-link--time-to-value:focus-within) .page-main__placeholder-4-corner,
+.page-main:has(.page-main__cs-link--systemic-growth:hover) .page-main__placeholder-4-corner,
+.page-main:has(.page-main__cs-link--systemic-growth:focus-within) .page-main__placeholder-4-corner {
+	opacity: 0 !important;
+	visibility: hidden !important;
+}
+
+/* Case study links — custom “Read more” cursor (see ReadMoreCursor.svelte); keyboard gets focus ring */
+.page-main__cs-link {
+	position: relative;
+	display: block;
+	min-width: 0;
+	min-height: 0;
+	height: 100%;
+	align-self: stretch;
+	text-decoration: none;
+	color: inherit;
+	outline: none;
+	cursor: none;
+	touch-action: manipulation;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.page-main__cs-link:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 3px;
+}
+
+.page-main__cs-link .page-main__image-placeholder__video {
+	pointer-events: none;
+}
+
+/* Lottie / phone / video stack above panel background */
+.page-main__image-placeholder > * {
+	position: relative;
+	z-index: 2;
+}
+
+/*
+ * Load-in (portfolio-style masked reveal): panel clips overflow; the first child slides up when ready.
+ * UX maturity link uses .page-main__ux-panel-reveal as first child (phone only); WHO sticker follows
+ * after --page-main-panel-reveal-duration. mediaLoadReveal sets data-media-loaded on the host.
+ */
+.page-main__cs-link,
+.page-main__placeholder-5,
+.page-main__placeholder-6,
+.page-main__placeholder-7,
+.page-main__placeholder-8,
+.page-main__placeholder-9,
+.page-main__placeholder-10,
+.page-main__placeholder-11 {
+	overflow: hidden;
+}
+
+/* UX stamp sits in .page-main__ux-panel-wrap (sibling of link) so the link can use overflow:hidden */
+
+.page-main__ux-panel-wrap {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	min-width: 0;
+	min-height: 0;
+	height: 100%;
+	align-self: stretch;
+	overflow: visible;
+}
+
+.page-main__cs-link:not([data-media-loaded]) > :first-child,
+.page-main__placeholder-5:not([data-media-loaded]) > :first-child,
+.page-main__placeholder-6:not([data-media-loaded]) > :first-child,
+.page-main__placeholder-7:not([data-media-loaded]) > :first-child,
+.page-main__placeholder-8:not([data-media-loaded]) > :first-child,
+.page-main__placeholder-9:not([data-media-loaded]) > :first-child,
+.page-main__placeholder-10:not([data-media-loaded]) > :first-child,
+.page-main__placeholder-11:not([data-media-loaded]) > :first-child {
+	transform: translate3d(0, 108%, 0);
+	will-change: transform;
+	transition: transform var(--page-main-panel-reveal-duration) cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.page-main__cs-link[data-media-loaded] > :first-child,
+.page-main__placeholder-5[data-media-loaded] > :first-child,
+.page-main__placeholder-6[data-media-loaded] > :first-child,
+.page-main__placeholder-7[data-media-loaded] > :first-child,
+.page-main__placeholder-8[data-media-loaded] > :first-child,
+.page-main__placeholder-9[data-media-loaded] > :first-child,
+.page-main__placeholder-10[data-media-loaded] > :first-child,
+.page-main__placeholder-11[data-media-loaded] > :first-child {
+	transform: translate3d(0, 0, 0);
+	will-change: auto;
+	transition: transform var(--page-main-panel-reveal-duration) cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/*
+ * Leaving home: reverse of mediaLoadReveal — same masked panel, first child slides back down.
+ * Triggered by +layout.svelte before startViewTransition so the exit is visible (not lost in VT snapshot).
+ */
+.page-main--media-exit .page-main__cs-link[data-media-loaded] > :first-child,
+.page-main--media-exit .page-main__placeholder-5[data-media-loaded] > :first-child,
+.page-main--media-exit .page-main__placeholder-6[data-media-loaded] > :first-child,
+.page-main--media-exit .page-main__placeholder-7[data-media-loaded] > :first-child,
+.page-main--media-exit .page-main__placeholder-8[data-media-loaded] > :first-child,
+.page-main--media-exit .page-main__placeholder-9[data-media-loaded] > :first-child,
+.page-main--media-exit .page-main__placeholder-10[data-media-loaded] > :first-child,
+.page-main--media-exit .page-main__placeholder-11[data-media-loaded] > :first-child {
+	transform: translate3d(0, 108%, 0);
+	will-change: transform;
+	/* Ease-in opposite of the reveal ease-out so motion reads as one system reversed */
+	transition: transform var(--page-main-panel-reveal-duration) cubic-bezier(0.55, 0, 0.85, 0.2);
+}
+
+.page-main--media-exit .page-main__placeholder-4-corner {
+	opacity: 0;
+	visibility: hidden;
+	animation: none;
+	transition:
+		opacity 0.18s ease,
+		visibility 0.18s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.page-main__cs-link:not([data-media-loaded]) > :first-child,
+	.page-main__cs-link[data-media-loaded] > :first-child,
+	.page-main__placeholder-5:not([data-media-loaded]) > :first-child,
+	.page-main__placeholder-5[data-media-loaded] > :first-child,
+	.page-main__placeholder-6:not([data-media-loaded]) > :first-child,
+	.page-main__placeholder-6[data-media-loaded] > :first-child,
+	.page-main__placeholder-7:not([data-media-loaded]) > :first-child,
+	.page-main__placeholder-7[data-media-loaded] > :first-child,
+	.page-main__placeholder-8:not([data-media-loaded]) > :first-child,
+	.page-main__placeholder-8[data-media-loaded] > :first-child,
+	.page-main__placeholder-9:not([data-media-loaded]) > :first-child,
+	.page-main__placeholder-9[data-media-loaded] > :first-child,
+	.page-main__placeholder-10:not([data-media-loaded]) > :first-child,
+	.page-main__placeholder-10[data-media-loaded] > :first-child,
+	.page-main__placeholder-11:not([data-media-loaded]) > :first-child,
+	.page-main__placeholder-11[data-media-loaded] > :first-child {
+		transform: none;
+		will-change: auto;
+		transition: none;
+	}
+
+	.page-main__cs-link {
+		cursor: pointer;
+	}
+
+	.page-main__cs-link::after,
+	.page-main__placeholder-5::after,
+	.page-main__placeholder-6::after,
+	.page-main__placeholder-7::after,
+	.page-main__placeholder-8::after,
+	.page-main__placeholder-9::after,
+	.page-main__placeholder-10::after,
+	.page-main__placeholder-11::after {
+		transition-duration: 0.01ms;
+	}
+
+	.page-main--media-exit .page-main__cs-link[data-media-loaded] > :first-child,
+	.page-main--media-exit .page-main__placeholder-5[data-media-loaded] > :first-child,
+	.page-main--media-exit .page-main__placeholder-6[data-media-loaded] > :first-child,
+	.page-main--media-exit .page-main__placeholder-7[data-media-loaded] > :first-child,
+	.page-main--media-exit .page-main__placeholder-8[data-media-loaded] > :first-child,
+	.page-main--media-exit .page-main__placeholder-9[data-media-loaded] > :first-child,
+	.page-main--media-exit .page-main__placeholder-10[data-media-loaded] > :first-child,
+	.page-main--media-exit .page-main__placeholder-11[data-media-loaded] > :first-child {
+		transform: none;
+		will-change: auto;
+		transition: none;
+	}
+
+}
+
+.page-main__image-placeholder {
+	position: relative;
+	align-self: stretch;
+	min-height: 0;
+	min-width: 0;
+	border: none;
+	/* Default: no fill; modifiers set panel backgrounds */
+	background: transparent;
+}
+
+.page-main__image-placeholder--lottie {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	height: 100%;
+	min-height: var(--page-main-strip-height);
+	min-width: 0;
+	overflow: hidden;
+}
+
+/* Light / default: solid panel only — no glass, no shadow, no top highlight */
+html:not([data-theme]) .page-main__image-placeholder--lottie,
+html[data-theme='light'] .page-main__image-placeholder--lottie,
+html:not([data-theme]) .page-main__image-placeholder--media,
+html[data-theme='light'] .page-main__image-placeholder--media,
+html:not([data-theme]) .page-main__image-placeholder--image,
+html[data-theme='light'] .page-main__image-placeholder--image {
+	background: var(--placeholder-lottie-bg);
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+	box-shadow: none;
+	isolation: auto;
+}
+
+/* Dark + accents: frosted glass — no outer shadow, no inset top line */
+html[data-theme='dark'] .page-main__image-placeholder--lottie,
+html[data-theme='pink'] .page-main__image-placeholder--lottie,
+html[data-theme='blue'] .page-main__image-placeholder--lottie,
+html[data-theme='purple'] .page-main__image-placeholder--lottie,
+html[data-theme='yellow'] .page-main__image-placeholder--lottie,
+html[data-theme='green'] .page-main__image-placeholder--lottie,
+html[data-theme='dark'] .page-main__image-placeholder--media,
+html[data-theme='pink'] .page-main__image-placeholder--media,
+html[data-theme='blue'] .page-main__image-placeholder--media,
+html[data-theme='purple'] .page-main__image-placeholder--media,
+html[data-theme='yellow'] .page-main__image-placeholder--media,
+html[data-theme='green'] .page-main__image-placeholder--media,
+html[data-theme='dark'] .page-main__image-placeholder--image,
+html[data-theme='pink'] .page-main__image-placeholder--image,
+html[data-theme='blue'] .page-main__image-placeholder--image,
+html[data-theme='purple'] .page-main__image-placeholder--image,
+html[data-theme='yellow'] .page-main__image-placeholder--image,
+html[data-theme='green'] .page-main__image-placeholder--image {
+	isolation: isolate;
+	background: var(--placeholder-lottie-bg);
+	backdrop-filter: blur(var(--placeholder-lottie-blur, 18px))
+		saturate(var(--placeholder-lottie-saturate, 1.35));
+	-webkit-backdrop-filter: blur(var(--placeholder-lottie-blur, 18px))
+		saturate(var(--placeholder-lottie-saturate, 1.35));
+	box-shadow: none;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+	html[data-theme='dark'] .page-main__image-placeholder--lottie,
+	html[data-theme='pink'] .page-main__image-placeholder--lottie,
+	html[data-theme='blue'] .page-main__image-placeholder--lottie,
+	html[data-theme='purple'] .page-main__image-placeholder--lottie,
+	html[data-theme='yellow'] .page-main__image-placeholder--lottie,
+	html[data-theme='green'] .page-main__image-placeholder--lottie,
+	html[data-theme='dark'] .page-main__image-placeholder--media,
+	html[data-theme='pink'] .page-main__image-placeholder--media,
+	html[data-theme='blue'] .page-main__image-placeholder--media,
+	html[data-theme='purple'] .page-main__image-placeholder--media,
+	html[data-theme='yellow'] .page-main__image-placeholder--media,
+	html[data-theme='green'] .page-main__image-placeholder--media,
+	html[data-theme='dark'] .page-main__image-placeholder--image,
+	html[data-theme='pink'] .page-main__image-placeholder--image,
+	html[data-theme='blue'] .page-main__image-placeholder--image,
+	html[data-theme='purple'] .page-main__image-placeholder--image,
+	html[data-theme='yellow'] .page-main__image-placeholder--image,
+	html[data-theme='green'] .page-main__image-placeholder--image {
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+	}
+}
+
+/*
+ * Lottie fills the first placeholder cell; lottie-web resize() matches this box to the SVG.
+ * --lottie-zoom: slight zoom-in (cropped by placeholder overflow).
+ */
+.page-main__lottie {
+	--lottie-zoom: 1.3;
+	box-sizing: border-box;
+	flex: 1 1 auto;
+	align-self: stretch;
+	width: 100%;
+	min-width: 0;
+	min-height: 0;
+	position: relative;
+	display: block;
+	background: transparent;
+}
+
+/* Third column: fit=contain + no padding — full animation visible (see .page-main__lottie--contain rules below) */
+.page-main__image-placeholder--image .page-main__lottie {
+	--lottie-zoom: 1;
+}
+
+/* First column: no zoom — 1:1 vs default 1.3 on .page-main__lottie */
+.page-main__image-placeholder--lottie .page-main__lottie {
+	--lottie-zoom: 1;
+}
+
+/*
+ * Cover Lottie (fit=contain): size to artwork, then center in cell (no flex:1 stretch).
+ */
+.page-main__image-placeholder--lottie .page-main__lottie--contain {
+	flex: 0 1 auto;
+	align-self: center;
+	width: auto;
+	max-width: 100%;
+	max-height: 100%;
+	min-height: 0;
+	margin-inline: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.page-main__image-placeholder--lottie .page-main__lottie--contain svg {
+	width: auto !important;
+	height: auto !important;
+	max-width: 100% !important;
+	max-height: 100% !important;
+	transform: none !important;
+	margin: auto;
+	display: block !important;
+}
+
+/* Strategy column (third): same contain + center as first Lottie */
+.page-main__image-placeholder--image .page-main__lottie--contain {
+	flex: 0 1 auto;
+	align-self: center;
+	width: auto;
+	max-width: 100%;
+	max-height: 100%;
+	min-height: 0;
+	margin-inline: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.page-main__image-placeholder--image .page-main__lottie--contain svg {
+	width: auto !important;
+	height: auto !important;
+	max-width: 100% !important;
+	max-height: 100% !important;
+	transform: none !important;
+	margin: auto;
+	display: block !important;
+}
+
+/* Plain `svg` (not :global) — app.css is not processed by Svelte; :global() breaks the selector */
+.page-main__lottie svg {
+	display: block;
+	background: transparent !important;
+	width: 100% !important;
+	height: 100% !important;
+	max-width: none !important;
+	max-height: none !important;
+	transform: scale(var(--lottie-zoom)) translateZ(0) !important;
+	transform-origin: center center;
+}
+
+.page-main__image-placeholder--media {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	padding: var(--grid-gap);
+	height: 100%;
+	min-height: var(--page-main-strip-height);
+	overflow: auto;
+}
+
+.page-main__image-placeholder--image {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	height: 100%;
+	min-height: var(--page-main-strip-height);
+	min-width: 0;
+	overflow: hidden;
+}
+
+/* UX maturity column: link fills cell; WHO stamp is positioned against .page-main__ux-panel-wrap */
+.page-main__cs-link--ux-panel {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	min-width: 0;
+	min-height: 0;
+	height: 100%;
+	flex: 1 1 auto;
+}
+
+.page-main__ux-panel-reveal {
+	position: relative;
+	z-index: 1;
+	flex: 1 1 auto;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.page-main__ux-panel-reveal > .page-main__image-placeholder--media {
+	position: relative;
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: visible;
+}
+
+/* WHO badge: “stamp” — hover above, slap down (scale past 1), tiny rebound, rest */
+@keyframes who-badge-enter {
+	0% {
+		opacity: 0;
+		transform: translate3d(28px, -38px, 0) scale(1.2) rotate(-4deg);
+	}
+	12% {
+		opacity: 1;
+	}
+	48% {
+		transform: translate3d(28px, -28px, 0) scale(0.92) rotate(0deg);
+	}
+	72% {
+		transform: translate3d(28px, -28px, 0) scale(1.05) rotate(0deg);
+	}
+	100% {
+		opacity: 1;
+		transform: translate3d(28px, -28px, 0) scale(1) rotate(0deg);
+	}
+}
+
+/* Corner marker: center on cell corner; stamp runs after phone reveal (see .page-main__cs-link--ux-panel) */
+.page-main__placeholder-4-corner {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 72px;
+	height: 72px;
+	border-radius: 50%;
+	box-sizing: border-box;
+	overflow: hidden;
+	pointer-events: none;
+	transform-origin: center center;
+	background: #eaf8fc;
+	backface-visibility: hidden;
+	/* 4px white ring + soft lift shadow */
+	box-shadow:
+		0 0 0 4px #ffffff,
+		0 2px 10px color-mix(in srgb, var(--fg) 12%, transparent),
+		0 4px 20px color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
+.page-main__cs-link--ux-panel:not([data-media-loaded]) ~ .page-main__placeholder-4-corner {
+	opacity: 0;
+	visibility: hidden;
+	animation: none;
+}
+
+.page-main__cs-link--ux-panel[data-media-loaded] ~ .page-main__placeholder-4-corner {
+	visibility: visible;
+	animation: who-badge-enter 0.55s cubic-bezier(0.25, 0.82, 0.35, 1) var(--page-main-panel-reveal-duration) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.page-main__cs-link--ux-panel:not([data-media-loaded]) ~ .page-main__placeholder-4-corner {
+		opacity: 0;
+		visibility: hidden;
+	}
+
+	.page-main__cs-link--ux-panel[data-media-loaded] ~ .page-main__placeholder-4-corner {
+		animation: none;
+		opacity: 1;
+		visibility: visible;
+		transform: translate3d(28px, -28px, 0);
+	}
+}
+
+.page-main__placeholder-4-corner__mark {
+	display: block;
+	flex-shrink: 0;
+	align-self: center;
+	width: 45px;
+	height: 45px;
+	margin: 0;
+	object-fit: contain;
+	object-position: center;
+	/* 90% of prior 50px — centered by parent flex */
+	transform: translateZ(0);
+	backface-visibility: hidden;
+}
+
+.page-main__phone-frame {
+	display: inline-block;
+	line-height: 0;
+	box-sizing: border-box;
+	max-width: min(12rem, 100%);
+	overflow: hidden;
+	border-radius: var(--phone-frame-radius);
+	border: var(--phone-bezel-width) solid var(--phone-bezel-outline);
+	box-shadow: var(--phone-frame-shadow, 0 4px 16px rgba(0, 0, 0, 0.18));
+}
+
+.page-main__image-placeholder__video {
+	display: block;
+	width: auto;
+	height: auto;
+	max-width: 100%;
+	/* Fits padded media cells inside the 4-row strip */
+	max-height: min(calc(4 * var(--page-main-row-height)), 48vh);
+	object-fit: contain;
+}
+
+/* Fourth panel (UX maturity): slightly smaller than default; centered in cell */
+.page-main__ux-panel-reveal > .page-main__image-placeholder--media {
+	justify-content: center;
+}
+
+.page-main__ux-panel-reveal .page-main__image-placeholder__video {
+	max-height: min(calc(3.5 * var(--page-main-row-height)), 40vh);
+}
+
+.page-main__ux-panel-reveal .page-main__phone-frame {
+	margin-inline: auto;
+	max-width: min(13rem, 100%);
+}
+
+.page-main__slot {
+	grid-column: 1 / -1;
+	grid-row: 1;
+	min-width: 0;
+}
+
+/* ——— Responsive: tablet / phone (narrow columns made the phone frame look pinched) ——— */
+
+@media (max-width: 1024px) {
+	:root {
+		--phone-frame-radius: 18px;
+		--phone-bezel-width: 5px;
+	}
+
+	.page-main__image-placeholder__video {
+		max-height: min(calc(4 * var(--page-main-row-height)), 44vh);
+	}
+
+	.page-main__ux-panel-reveal .page-main__image-placeholder__video {
+		max-height: min(calc(3.5 * var(--page-main-row-height)), 36vh);
+	}
+}
+
+@media (max-width: 900px) {
+	.page-main.grid-14 {
+		grid-template-rows: auto;
+		grid-auto-rows: minmax(0, auto);
+	}
+
+	.page-main.page-main--route.grid-14 {
+		grid-template-rows: auto;
+		grid-auto-rows: minmax(0, auto);
+	}
+
+	.page-main.page-main--route .page-main__route-fill {
+		grid-row: auto;
+		min-height: 0;
+	}
+
+	.page-main.page-main--route .site-footer.grid-14 {
+		grid-row: auto;
+	}
+
+	/* Slot → spacer band → placeholders (same order as desktop) */
+	.page-main__row-spacer {
+		grid-column: 1 / -1;
+		grid-row: 2;
+		min-height: var(--page-main-row-height);
+	}
+
+	.page-main__row-spacer--strip-fifth {
+		grid-column: 1 / -1;
+		grid-row: auto;
+		min-height: var(--page-main-row-height);
+	}
+
+	.page-main__row-spacer--lower-bands {
+		grid-column: 1 / -1;
+		grid-row: auto;
+		min-height: var(--page-main-row-height);
+	}
+
+	.page-main__placeholders {
+		grid-column: 1 / -1;
+		grid-row: 3;
+		grid-template-columns: 1fr;
+		grid-template-rows: auto;
+		row-gap: var(--grid-gap);
+		min-height: 0;
+		max-height: none;
+		overflow: visible;
+	}
+
+	.page-main__placeholder-5,
+	.page-main__placeholder-6,
+	.page-main__placeholder-7,
+	.page-main__placeholder-8,
+	.page-main__placeholder-9,
+	.page-main__placeholder-10,
+	.page-main__placeholder-11 {
+		grid-column: 1 / -1;
+		grid-row: auto;
+		min-height: min(36vh, 22rem);
+		max-height: none;
+	}
+
+	.site-footer.grid-14 {
+		grid-column: 1 / -1;
+		grid-row: auto;
+		padding-block: var(--grid-gap);
+		row-gap: 0.35rem;
+	}
+
+	.site-footer__copyright {
+		grid-column: 1 / -1;
+	}
+
+	.site-footer__social {
+		grid-column: 1 / -1;
+	}
+
+	.page-main__image-placeholder {
+		align-self: stretch;
+	}
+
+	.page-main__slot {
+		grid-row: 1;
+	}
+
+	.page-main__placeholders-gap {
+		display: none;
+	}
+
+	.page-main__placeholders > .page-main__cs-link,
+	.page-main__placeholders > .page-main__ux-panel-wrap {
+		grid-column: 1 / -1;
+		grid-row: auto;
+		height: auto;
+		min-height: 0;
+	}
+
+	.page-main__image-placeholder--lottie,
+	.page-main__image-placeholder--media,
+	.page-main__image-placeholder--image {
+		grid-column: 1 / -1;
+		grid-row: auto;
+		height: auto;
+		min-height: 0;
+	}
+
+	.page-main__image-placeholder--lottie {
+		overflow: hidden;
+		/* Explicit band so Lottie still fills a box when grid row is height: auto */
+		min-height: min(52vh, 28rem);
+	}
+
+	.page-main__image-placeholder--image {
+		min-height: min(48vh, 26rem);
+	}
+
+	.page-main__lottie {
+		--lottie-zoom: 1.3;
+	}
+
+	:root {
+		--phone-frame-radius: 14px;
+		--phone-bezel-width: 4px;
+	}
+
+	.page-main__phone-frame {
+		display: block;
+		width: fit-content;
+		max-width: min(14.5rem, 78vw);
+		margin-inline: auto;
+	}
+
+	.page-main__image-placeholder__video {
+		width: 100%;
+		max-width: 100%;
+		max-height: min(48vh, 19rem);
+	}
+
+	.page-main__ux-panel-reveal .page-main__image-placeholder__video {
+		max-height: min(42vh, 17rem);
+	}
+}
+
+@media (max-width: 480px) {
+	:root {
+		--phone-frame-radius: 11px;
+	}
+
+	.page-main__phone-frame {
+		max-width: min(12.5rem, 86vw);
+	}
+}
+
+/* Span utilities — use class="grid-14" on parent, then col-span-n on children */
+.col-span-1 {
+	grid-column: span 1;
+}
+.col-span-2 {
+	grid-column: span 2;
+}
+.col-span-3 {
+	grid-column: span 3;
+}
+.col-span-4 {
+	grid-column: span 4;
+}
+.col-span-5 {
+	grid-column: span 5;
+}
+.col-span-6 {
+	grid-column: span 6;
+}
+.col-span-7 {
+	grid-column: span 7;
+}
+.col-span-8 {
+	grid-column: span 8;
+}
+.col-span-9 {
+	grid-column: span 9;
+}
+.col-span-10 {
+	grid-column: span 10;
+}
+.col-span-11 {
+	grid-column: span 11;
+}
+.col-span-12 {
+	grid-column: span 12;
+}
+.col-span-13 {
+	grid-column: span 13;
+}
+.col-span-14 {
+	grid-column: span 14;
+}
+
+.col-start-1 {
+	grid-column-start: 1;
+}
+.col-start-2 {
+	grid-column-start: 2;
+}
+.col-start-3 {
+	grid-column-start: 3;
+}
+.col-start-4 {
+	grid-column-start: 4;
+}
+.col-start-5 {
+	grid-column-start: 5;
+}
+.col-start-6 {
+	grid-column-start: 6;
+}
+.col-start-7 {
+	grid-column-start: 7;
+}
+.col-start-8 {
+	grid-column-start: 8;
+}
+.col-start-9 {
+	grid-column-start: 9;
+}
+.col-start-10 {
+	grid-column-start: 10;
+}
+.col-start-11 {
+	grid-column-start: 11;
+}
+.col-start-12 {
+	grid-column-start: 12;
+}
+.col-start-13 {
+	grid-column-start: 13;
+}
+.col-start-14 {
+	grid-column-start: 14;
+}
+
+a {
+	color: inherit;
+}
+
+/*
+ * Temporary visual: 14 column stripes + row rhythm + outlines + main child fills.
+ * Row bands: strip = rows 3–6; middle spacer = row 7; lower band 1 = 8–12 (8th is 5 rows), spacer 13, 14–17, row 18 rhythm, row 19 footer (row 2 = hero spacer).
+ * Toggle via .debug-grid-toggle in +layout.svelte; remove toggle + rules when done.
+ */
+.page-shell.debug-grid {
+	--debug-col: calc((100% - 13 * var(--grid-gap)) / 14);
+	--debug-row: var(--page-main-row-height);
+}
+
+/* Nav: column stripes on the bar (no opaque children covering). */
+.page-shell.debug-grid .site-nav__desktop.grid-14 {
+	background-image: repeating-linear-gradient(
+		to right,
+		rgba(16, 185, 129, 0.28) 0,
+		rgba(16, 185, 129, 0.28) var(--debug-col),
+		transparent var(--debug-col),
+		transparent calc(var(--debug-col) + var(--grid-gap))
+	);
+}
+
+/*
+ * Main: column stripes on ::after so they paint above the hero (slot bg is often transparent).
+ * Placeholders sit above this layer (z-index) so row ::after can show on top of panels.
+ */
+.page-shell.debug-grid main.page-main.grid-14 {
+	position: relative;
+}
+
+.page-shell.debug-grid main.page-main.grid-14::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 5;
+	background-image: repeating-linear-gradient(
+		to right,
+		rgba(16, 185, 129, 0.28) 0,
+		rgba(16, 185, 129, 0.28) var(--debug-col),
+		transparent var(--debug-col),
+		transparent calc(var(--debug-col) + var(--grid-gap))
+	);
+}
+
+/*
+ * Row rhythm (wide): one grid-placed ::before on main (rows 3–19) so orange bands share one
+ * repeating-linear-gradient from the top of the strip through both lower bands. Subgrid wrappers were
+ * unreliable in WebKit/Safari; a flat main grid + this overlay keeps layout stable.
+ */
+@media (min-width: 901px) {
+	/* Home portfolio only — route main has 4 rows; row bands for /index /about /work live on the slot (below). */
+	.page-shell.debug-grid main.page-main.page-main--portfolio.grid-14::before {
+		content: '';
+		grid-column: 1 / -1;
+		grid-row: 3 / span 17;
+		align-self: stretch;
+		min-height: 0;
+		position: relative;
+		z-index: 50;
+		pointer-events: none;
+		background-image: repeating-linear-gradient(
+			to bottom,
+			rgba(251, 146, 60, 0.42) 0,
+			rgba(251, 146, 60, 0.42) var(--debug-row),
+			transparent var(--debug-row),
+			transparent calc(var(--debug-row) + var(--grid-gap))
+		);
+	}
+
+	/*
+	 * /index (and other routes): orange row rhythm inside the first main row (slot), aligned with
+	 * --page-main-row-height + --grid-gap — same pattern as home strip overlay.
+	 */
+	.page-shell.debug-grid .page-main.page-main--route .page-main__slot {
+		position: relative;
+	}
+
+	.page-shell.debug-grid .page-main.page-main--route .page-main__slot::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		pointer-events: none;
+		background-image: repeating-linear-gradient(
+			to bottom,
+			rgba(251, 146, 60, 0.42) 0,
+			rgba(251, 146, 60, 0.42) var(--debug-row),
+			transparent var(--debug-row),
+			transparent calc(var(--debug-row) + var(--grid-gap))
+		);
+	}
+
+	.page-shell.debug-grid .page-main.page-main--route .page-main__slot > * {
+		position: relative;
+		z-index: 1;
+	}
+
+	/* Below the orange overlay so row bands stay visible (later siblings paint above by default). */
+	.page-shell.debug-grid .page-main__placeholders,
+	.page-shell.debug-grid .page-main__placeholder-5,
+	.page-shell.debug-grid .page-main__placeholder-6,
+	.page-shell.debug-grid .page-main__placeholder-7,
+	.page-shell.debug-grid .page-main__placeholder-8,
+	.page-shell.debug-grid .page-main__placeholder-9,
+	.page-shell.debug-grid .page-main__placeholder-10,
+	.page-shell.debug-grid .page-main__placeholder-11 {
+		position: relative;
+		z-index: 1;
+	}
+}
+
+/*
+ * Narrow: main row tracks are implicit — use per-panel orange like before (phase matches strip only).
+ */
+@media (max-width: 900px) {
+	.page-shell.debug-grid .page-main__placeholders {
+		position: relative;
+		z-index: 10;
+	}
+
+	.page-shell.debug-grid .page-main__placeholders::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		z-index: 40;
+		background-image: repeating-linear-gradient(
+			to bottom,
+			rgba(251, 146, 60, 0.42) 0,
+			rgba(251, 146, 60, 0.42) var(--debug-row),
+			transparent var(--debug-row),
+			transparent calc(var(--debug-row) + var(--grid-gap))
+		);
+	}
+
+	.page-shell.debug-grid .page-main__placeholder-5::before,
+	.page-shell.debug-grid .page-main__placeholder-6::before,
+	.page-shell.debug-grid .page-main__placeholder-7::before,
+	.page-shell.debug-grid .page-main__placeholder-8::before,
+	.page-shell.debug-grid .page-main__placeholder-9::before,
+	.page-shell.debug-grid .page-main__placeholder-10::before,
+	.page-shell.debug-grid .page-main__placeholder-11::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		z-index: 50;
+		background-image: repeating-linear-gradient(
+			to bottom,
+			rgba(251, 146, 60, 0.42) 0,
+			rgba(251, 146, 60, 0.42) var(--debug-row),
+			transparent var(--debug-row),
+			transparent calc(var(--debug-row) + var(--grid-gap))
+		);
+	}
+
+	/*
+	 * /index (and other routes): same row rhythm on narrow — slot fills the viewport width.
+	 */
+	.page-shell.debug-grid .page-main.page-main--route .page-main__slot {
+		position: relative;
+	}
+
+	.page-shell.debug-grid .page-main.page-main--route .page-main__slot::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		pointer-events: none;
+		background-image: repeating-linear-gradient(
+			to bottom,
+			rgba(251, 146, 60, 0.42) 0,
+			rgba(251, 146, 60, 0.42) var(--debug-row),
+			transparent var(--debug-row),
+			transparent calc(var(--debug-row) + var(--grid-gap))
+		);
+	}
+
+	.page-shell.debug-grid .page-main.page-main--route .page-main__slot > * {
+		position: relative;
+		z-index: 1;
+	}
+}
+
+.page-shell.debug-grid .grid-14 > * {
+	outline: 1px dashed rgba(168, 85, 247, 0.65);
+	outline-offset: -1px;
+}
+
+/* Implicit rows: each full-width section in main is one horizontal band */
+.page-shell.debug-grid main.page-main.grid-14 > :nth-child(odd) {
+	background-color: rgba(239, 68, 68, 0.1);
+}
+
+.page-shell.debug-grid main.page-main.grid-14 > :nth-child(even) {
+	background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Do not set min-height on main here — it reflows the page when toggling the overlay */
+
+.debug-grid-toggle {
+	position: fixed;
+	bottom: max(12px, env(safe-area-inset-bottom));
+	right: max(12px, env(safe-area-inset-right));
+	z-index: 99999;
+	padding: 0.45rem 0.65rem;
+	font-size: 0.6875rem;
+	font-weight: 600;
+	font-family: inherit;
+	letter-spacing: 0.02em;
+	color: #fafafa;
+	background: rgba(15, 23, 42, 0.92);
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	border-radius: 8px;
+	cursor: pointer;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.debug-grid-toggle:hover {
+	background: rgba(30, 41, 59, 0.96);
+}
+
+.debug-grid-toggle:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
+}
