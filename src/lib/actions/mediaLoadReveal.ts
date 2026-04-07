@@ -67,9 +67,17 @@ function afterPaint(): Promise<void> {
 	return new Promise<void>((resolve) => {
 		requestAnimationFrame(() => {
 			requestAnimationFrame(() => {
-				/* Narrow viewports need one more frame so WebKit paints translateY(108%) before reveal. */
+				/*
+				 * Narrow + touch: two rAFs are enough; a third frame added noticeable lag on iOS.
+				 * Narrow + fine pointer: keep a third frame — WebKit on desktop small windows can
+				 * skip painting translateY(108%) before reveal without it.
+				 */
 				if (browser && window.matchMedia('(max-width: 900px)').matches) {
-					requestAnimationFrame(() => resolve());
+					if (window.matchMedia('(pointer: coarse)').matches) {
+						resolve();
+					} else {
+						requestAnimationFrame(() => resolve());
+					}
 				} else {
 					resolve();
 				}

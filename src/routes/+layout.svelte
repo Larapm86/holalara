@@ -89,6 +89,18 @@
 
 		if (!browser || !document.startViewTransition) return;
 
+		/*
+		 * iOS Safari (and many mobile WebViews): root view transitions often flash the wrong
+		 * intermediate frame — users see `/` (home) before the real destination when tapping
+		 * Index / About / Work from the menu. Skip root VT on narrow viewports and touch-primary
+		 * devices; navigation still runs normally without the cross-fade.
+		 */
+		const skipRootViewTransition =
+			window.matchMedia('(max-width: 900px)').matches ||
+			window.matchMedia('(pointer: coarse)').matches;
+
+		if (skipRootViewTransition) return;
+
 		const dir = vtDirFromNavigation(navigation.from, navigation.to);
 		document.documentElement.dataset.vtDir = dir;
 

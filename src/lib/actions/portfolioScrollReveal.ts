@@ -4,6 +4,10 @@ import { browser } from '$app/environment';
 /**
  * Mobile portfolio: add `page-main__panel--in-view` when each panel intersects the viewport
  * so CSS can drop the frost veil and show media (see app.css @media max-width 900px).
+ *
+ * WebKit on iOS often reports 0×0 or off-screen rects on the first frame; a generous
+ * rootMargin + deferred `primeViewport` passes keep above-the-fold panels from staying
+ * “stuck” behind frost while media has already revealed.
  */
 const PANEL_SELECTOR = [
 	'.page-main__placeholders > .page-main__cs-link',
@@ -24,6 +28,8 @@ export const portfolioScrollReveal: Action<HTMLElement> = (node) => {
 	const mq = window.matchMedia('(max-width: 900px)');
 
 	let io: IntersectionObserver | null = null;
+	let resizeHandler: (() => void) | undefined;
+	let vvHandler: (() => void) | undefined;
 
 	function clearInViewClasses() {
 		node.querySelectorAll(`.${IN_VIEW}`).forEach((el) => el.classList.remove(IN_VIEW));
@@ -31,33 +37,62 @@ export const portfolioScrollReveal: Action<HTMLElement> = (node) => {
 
 	function setup() {
 		io?.disconnect();
+		if (resizeHandler) {
+			window.removeEventListener('resize', resizeHandler);
+			resizeHandler = undefined;
+		}
+		if (vvHandler && window.visualViewport) {
+			window.visualViewport.removeEventListener('resize', vvHandler);
+			vvHandler = undefined;
+		}
 		io = null;
 		clearInViewClasses();
 
 		if (!mq.matches) return;
 
-		const targets = node.querySelectorAll<HTMLElement>(PANEL_SELECTOR);
+		const targets = Array.from(node.querySelectorAll<HTMLElement>(PANEL_SELECTOR));
 		if (targets.length === 0) return;
 
-		/*
-		 * A negative bottom rootMargin delays intersection until the user scrolls — fine on desktop
-		 * where frost is optional polish. On mobile, panels felt “stuck” until halfway scrolled.
-		 */
+		function primeViewport() {
+			const vh = window.innerHeight;
+			if (vh <= 0) return;
+			const pad = 140;
+			for (const t of targets) {
+				const r = t.getBoundingClientRect();
+				if (r.bottom > -pad && r.top < vh + pad) t.classList.add(IN_VIEW);
+			}
+		}
+
 		io = new IntersectionObserver(
 			(entries) => {
 				for (const e of entries) {
 					if (e.isIntersecting) e.target.classList.add(IN_VIEW);
 				}
 			},
-			{ threshold: 0.05, rootMargin: '0px' }
+			{ threshold: 0, rootMargin: '22% 0px 38% 0px' }
 		);
 
-		targets.forEach((t) => {
-			io!.observe(t);
-			/* IO can miss the first paint on some mobile WebViews — prime above-the-fold panels */
-			const r = t.getBoundingClientRect();
-			if (r.bottom > 0 && r.top < window.innerHeight) t.classList.add(IN_VIEW);
+		for (const t of targets) {
+			io.observe(t);
+		}
+
+		primeViewport();
+		requestAnimationFrame(() => {
+			requestAnimationFrame(() => {
+				primeViewport();
+			});
 		});
+		queueMicrotask(primeViewport);
+		setTimeout(primeViewport, 0);
+		setTimeout(primeViewport, 80);
+		setTimeout(primeViewport, 240);
+
+		resizeHandler = () => queueMicrotask(primeViewport);
+		window.addEventListener('resize', resizeHandler, { passive: true });
+		if (window.visualViewport) {
+			vvHandler = () => queueMicrotask(primeViewport);
+			window.visualViewport.addEventListener('resize', vvHandler, { passive: true });
+		}
 	}
 
 	setup();
@@ -67,6 +102,8 @@ export const portfolioScrollReveal: Action<HTMLElement> = (node) => {
 		destroy() {
 			mq.removeEventListener('change', setup);
 			io?.disconnect();
+			if (resizeHandler) window.removeEventListener('resize', resizeHandler);
+			if (vvHandler && window.visualViewport) window.visualViewport.removeEventListener('resize', vvHandler);
 			clearInViewClasses();
 		}
 	};

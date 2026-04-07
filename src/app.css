@@ -2056,7 +2056,7 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 	.page-main.page-main--portfolio
 		.page-main__placeholder-11:not(.page-main__panel--in-view[data-media-loaded])::after {
 		opacity: 0.58 !important;
-		transition: opacity 0.42s var(--placeholder-cs-frost-easing);
+		transition: opacity 0.3s var(--placeholder-cs-frost-easing);
 	}
 
 	.page-main.page-main--portfolio
@@ -2070,7 +2070,7 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 	.page-main.page-main--portfolio .page-main__placeholder-10.page-main__panel--in-view[data-media-loaded]::after,
 	.page-main.page-main--portfolio .page-main__placeholder-11.page-main__panel--in-view[data-media-loaded]::after {
 		opacity: 0 !important;
-		transition: opacity 0.55s ease;
+		transition: opacity 0.38s ease;
 	}
 
 	.page-main.page-main--portfolio
@@ -2080,14 +2080,14 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		.page-main__ux-panel-wrap:not(:has(.page-main__cs-link--ux-panel[data-media-loaded]))
 		.page-main__cs-link--ux-panel::after {
 		opacity: 0.58 !important;
-		transition: opacity 0.42s var(--placeholder-cs-frost-easing);
+		transition: opacity 0.3s var(--placeholder-cs-frost-easing);
 	}
 
 	.page-main.page-main--portfolio
 		.page-main__ux-panel-wrap.page-main__panel--in-view:has(.page-main__cs-link--ux-panel[data-media-loaded])
 		.page-main__cs-link--ux-panel::after {
 		opacity: 0 !important;
-		transition: opacity 0.55s ease;
+		transition: opacity 0.38s ease;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

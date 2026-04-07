@@ -7,6 +7,7 @@
 	<!--
 		Strip videos: start both fetches as early as possible (UX clip is largest — list it first).
 		Reveal timing for UX uses loadedmetadata in mediaLoadReveal so it aligns with other panels.
+		Strip Lottie JSON: warm HTTP cache before each SoberoStrategyLottie fetch (smoother mobile load).
 	-->
 	<link
 		rel="preload"
@@ -16,6 +17,8 @@
 		fetchpriority="high"
 	/>
 	<link rel="preload" href="{base}/video/sobero.mov" as="video" type="video/quicktime" />
+	<link rel="preload" href="{base}/lottie/sobero-cover-4.json" as="fetch" crossorigin="anonymous" />
+	<link rel="preload" href="{base}/lottie/sobero-strategy01-2.json" as="fetch" crossorigin="anonymous" />
 </svelte:head>
 
 <HomePortfolioMain>

@@ -682,9 +682,10 @@
 		opacity: 0.72;
 	}
 
+	.site-nav__menu-btn:focus,
 	.site-nav__menu-btn:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--fg) 42%, transparent);
-		outline-offset: 3px;
+		outline: none;
+		box-shadow: none;
 	}
 
 	/* —— Mobile / tablet dialog (only when .site-nav__mobile-bar is visible, ≤1024px) —— */
@@ -773,10 +774,10 @@
 		opacity: 0.72;
 	}
 
+	.site-nav__dialog-close:focus,
 	.site-nav__dialog-close:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--fg) 42%, transparent);
-		outline-offset: 3px;
-		border-radius: 4px;
+		outline: none;
+		box-shadow: none;
 	}
 
 	.site-nav__dialog-list {
