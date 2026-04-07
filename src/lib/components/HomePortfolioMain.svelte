@@ -50,7 +50,6 @@
 					<video
 						class="page-main__image-placeholder__video"
 						src="{base}/video/sobero.mov"
-						data-media-reveal="metadata"
 						preload="metadata"
 						autoplay
 						muted
@@ -89,12 +88,11 @@
 							<video
 								class="page-main__image-placeholder__video"
 								src="{base}/video/ux-maturity-discovery.mov"
-								data-media-reveal="metadata"
+								preload="metadata"
 								autoplay
 								muted
 								loop
 								playsinline
-								preload="auto"
 							></video>
 						</div>
 					</div>

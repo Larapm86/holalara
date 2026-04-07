@@ -6,7 +6,7 @@
 <svelte:head>
 	<!--
 		Strip videos: start both fetches as early as possible (UX clip is largest — list it first).
-		Reveal timing for UX uses loadedmetadata in mediaLoadReveal so it aligns with other panels.
+		Strip videos: mediaLoadReveal waits on loadedmetadata by default (see mediaLoadReveal.ts).
 		Strip Lottie JSON: warm HTTP cache before each SoberoStrategyLottie fetch (smoother mobile load).
 	-->
 	<link

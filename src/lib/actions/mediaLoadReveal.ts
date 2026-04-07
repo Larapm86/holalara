@@ -25,9 +25,14 @@ function whenVideoMetadataReady(v: HTMLVideoElement): Promise<void> {
 	});
 }
 
+/**
+ * Default: `loadedmetadata` — aligns with Lottie strip panels (P2/P4) instead of waiting for
+ * `loadeddata` (first decoded frame), which is much later on large .mov files.
+ * Opt in to full decode: `data-media-reveal="loadeddata"` on the `<video>`.
+ */
 function whenVideoRevealReady(v: HTMLVideoElement): Promise<void> {
-	if (v.dataset.mediaReveal === 'metadata') return whenVideoMetadataReady(v);
-	return whenVideoReady(v);
+	if (v.dataset.mediaReveal === 'loadeddata') return whenVideoReady(v);
+	return whenVideoMetadataReady(v);
 }
 
 function whenImgReady(img: HTMLImageElement): Promise<void> {
