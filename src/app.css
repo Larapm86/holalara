@@ -1097,6 +1097,17 @@ html[data-custom-cursor] [contenteditable='true'] {
 	transition: transform var(--page-main-panel-reveal-duration) cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.page-main__cs-link[data-media-loaded-noanim] > :first-child,
+.page-main__placeholder-5[data-media-loaded-noanim] > :first-child,
+.page-main__placeholder-6[data-media-loaded-noanim] > :first-child,
+.page-main__placeholder-7[data-media-loaded-noanim] > :first-child,
+.page-main__placeholder-8[data-media-loaded-noanim] > :first-child,
+.page-main__placeholder-9[data-media-loaded-noanim] > :first-child,
+.page-main__placeholder-10[data-media-loaded-noanim] > :first-child,
+.page-main__placeholder-11[data-media-loaded-noanim] > :first-child {
+	transition: none !important;
+}
+
 /*
  * Leaving home: reverse of mediaLoadReveal — same masked panel, first child slides back down.
  * Triggered by +layout.svelte before startViewTransition so the exit is visible (not lost in VT snapshot).

@@ -547,9 +547,20 @@
 		color: inherit;
 	}
 
-	/* Desktop: meal image in a layer above the grid (no layout shift) */
+	/*
+	 * Desktop: meal image on hover + themed cursor.
+	 * Fallback stays default when custom cursor URLs are unsupported.
+	 */
 	.site-nav__desktop .site-nav__son-wrap {
-		cursor: help;
+		cursor: default;
+	}
+
+	.site-nav__desktop .site-nav__son-wrap:hover,
+	.site-nav__desktop .site-nav__son-wrap:focus-within {
+		cursor:
+			url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg stroke='%230a0a0a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'%3E%3Cpath d='M6 3v9'/%3E%3Cpath d='M9 3v9'/%3E%3Cpath d='M12 3v9'/%3E%3Cpath d='M9 12v17'/%3E%3Cpath d='M22 3c2.1 3.3 2.1 7.7 0 11'/%3E%3Cpath d='M22 14v15'/%3E%3C/g%3E%3C/svg%3E")
+				9 4,
+			default;
 	}
 
 	.site-nav__meal-popover {

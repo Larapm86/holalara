@@ -1,5 +1,5 @@
 import type { Action } from 'svelte/action';
-import { waitForInitialCurtainHome } from '$lib/appLoadCurtain';
+import { APP_CURTAIN_SESSION_KEY, waitForInitialCurtainHome } from '$lib/appLoadCurtain';
 import { browser } from '$app/environment';
 import { tick } from 'svelte';
 
@@ -149,17 +149,52 @@ function getStripRevealHosts(placeholders: HTMLElement): HTMLElement[] {
 	return [...row, ...ux];
 }
 
+function markHostsLoadedInstant(hosts: HTMLElement[]): void {
+	for (const h of hosts) {
+		h.setAttribute('data-media-loaded-noanim', '');
+		h.setAttribute('data-media-loaded', '');
+	}
+	requestAnimationFrame(() => {
+		requestAnimationFrame(() => {
+			for (const h of hosts) h.removeAttribute('data-media-loaded-noanim');
+		});
+	});
+}
+
 /**
  * Home strip (P1–P4): one gate for all tiles — wait for every Lottie + video in the placeholders
  * subtree, then set `data-media-loaded` on all four links together so the masked reveal runs in sync.
  */
 export const stripMediaLoadReveal: Action<HTMLElement> = (node) => {
 	let cancelled = false;
+	let curtainRunThisPass = false;
+
+	if (browser) {
+		try {
+			curtainRunThisPass = sessionStorage.getItem(APP_CURTAIN_SESSION_KEY) !== '1';
+		} catch {
+			curtainRunThisPass = false;
+		}
+		if (curtainRunThisPass) {
+			/*
+			 * Prevent a one-frame drop-out when the first-load curtain hands off to Home:
+			 * keep strip hosts in loaded state from the start of this pass.
+			 */
+			markHostsLoadedInstant(getStripRevealHosts(node));
+		}
+	}
 
 	const finish = async () => {
 		if (cancelled) return;
 		await waitForInitialCurtainHome();
 		if (cancelled) return;
+		if (curtainRunThisPass) {
+			/*
+			 * First home load: AppLoadCurtain already animates tiles to final positions.
+			 * Keep curtain/load timing gate, but avoid replaying strip reveal.
+			 */
+			return;
+		}
 		await afterPaint();
 		if (cancelled) return;
 		for (const h of getStripRevealHosts(node)) {

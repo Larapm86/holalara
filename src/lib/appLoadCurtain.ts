@@ -9,18 +9,26 @@ export const APP_CURTAIN_SESSION_KEY = 'holalara-curtain-dismissed';
  */
 export async function waitForInitialCurtainHome(): Promise<void> {
 	if (!browser) return;
+	let dismissed = false;
 	try {
-		if (sessionStorage.getItem(APP_CURTAIN_SESSION_KEY) === '1') return;
+		dismissed = sessionStorage.getItem(APP_CURTAIN_SESSION_KEY) === '1';
 	} catch {
-		return;
+		dismissed = false;
 	}
+	if (dismissed) return;
 
 	await new Promise<void>((resolve) => {
+		let settled = false;
 		const done = () => {
+			if (settled) return;
+			settled = true;
+			clearTimeout(fallbackId);
 			window.removeEventListener('holalara:curtain-dismissed', done);
 			resolve();
 		};
 		window.addEventListener('holalara:curtain-dismissed', done, { once: true });
+		/* Safety valve: never deadlock home if the curtain event chain breaks. */
+		const fallbackId = window.setTimeout(done, 7000);
 		/* Double rAF so AppLoadCurtain’s listener is attached before we signal. */
 		requestAnimationFrame(() => {
 			requestAnimationFrame(() => {

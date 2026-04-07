@@ -25,6 +25,10 @@
 	const COMPANY_SOBERO = 'Sobero';
 	const COMPANY_KWIT = 'Kwit';
 	const CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	/** Case-study pill scramble: tick rate + steps (lower = snappier hover read). */
+	const SCRAMBLE_MS = 10;
+	const SCRAMBLE_TICKS_MIN = 5;
+	const SCRAMBLE_TICKS_MAX = 11;
 
 	function randomChar(): string {
 		return CHARSET[(Math.random() * CHARSET.length) | 0] ?? 'X';
@@ -132,7 +136,10 @@
 
 		const len = finalLabel.length;
 		let tick = 0;
-		const maxTicks = Math.max(8, Math.min(16, Math.ceil(len * 0.55)));
+		const maxTicks = Math.max(
+			SCRAMBLE_TICKS_MIN,
+			Math.min(SCRAMBLE_TICKS_MAX, Math.ceil(len * 0.38))
+		);
 		scrambleTimer = setInterval(() => {
 			tick += 1;
 			const settleThrough = (tick / maxTicks) * (len + 2);
@@ -149,7 +156,7 @@
 				if (scrambleTimer) clearInterval(scrambleTimer);
 				scrambleTimer = undefined;
 			}
-		}, 18);
+		}, SCRAMBLE_MS);
 	}
 
 	function stopScramble() {
@@ -176,7 +183,12 @@
 
 		reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 		const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
-		const mqFine = window.matchMedia('(pointer: fine)');
+		/**
+		 * Use `any-pointer: fine`, not `pointer: fine`. Firefox + Windows (and some hybrids) report the
+		 * *primary* pointer as coarse when touch is enabled, so `(pointer: fine)` is false even with a
+		 * mouse — the custom cursor + case-study scramble never activate.
+		 */
+		const mqFine = window.matchMedia('(any-pointer: fine)');
 		const mqWide = window.matchMedia(`(min-width: ${MIN_WIDTH_PX}px)`);
 
 		function customCursorActive(): boolean {
