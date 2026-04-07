@@ -228,7 +228,16 @@ html[data-custom-cursor] [contenteditable='true'] {
 	flex-direction: column;
 	min-height: 100dvh;
 	padding: var(--page-margin);
+	-webkit-animation: page-shell-enter 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
 	animation: page-shell-enter 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Same entrance on narrow viewports (iOS Safari uses -webkit-animation reliably) */
+@media (max-width: 900px) {
+	.page-shell {
+		-webkit-animation: page-shell-enter 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+		animation: page-shell-enter 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+	}
 }
 
 .page-shell > main.page-main {
@@ -238,6 +247,7 @@ html[data-custom-cursor] [contenteditable='true'] {
 
 @media (prefers-reduced-motion: reduce) {
 	.page-shell {
+		-webkit-animation: none;
 		animation: none;
 		opacity: 1;
 		transform: none;
@@ -1564,6 +1574,14 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		min-height: 100%;
 	}
 
+	/*
+	 * Snappier masked reveal + frost on home only (touch scroll felt sluggish at 1.05s).
+	 */
+	.page-main.page-main--portfolio {
+		--page-main-panel-reveal-duration: 0.72s;
+		--placeholder-cs-frost-duration: 150ms;
+	}
+
 	/* Home: 3-column checkerboard (empty cells = rhythm); route pages keep 14 tracks below */
 	.page-main.page-main--portfolio .page-main__body {
 		display: grid;
@@ -1583,34 +1601,62 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		grid-row: 1;
 	}
 
+	.page-main.page-main--portfolio .page-main__body > .page-main__mobile-rhythm {
+		display: block;
+		grid-column: 1 / -1;
+		min-height: var(--page-main-row-height);
+		pointer-events: none;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__mobile-rhythm[data-rhythm-band='1'] {
+		grid-row: 2;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__mobile-rhythm[data-rhythm-band='2'] {
+		grid-row: 4;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__mobile-rhythm[data-rhythm-band='3'] {
+		grid-row: 6;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__mobile-rhythm[data-rhythm-band='4'] {
+		grid-row: 9;
+	}
+
 	.page-main.page-main--portfolio
 		.page-main__body
 		> .page-main__row-spacer:not(.page-main__row-spacer--strip-fifth):not(.page-main__row-spacer--lower-bands) {
 		grid-column: 1 / -1;
-		grid-row: 2;
+		grid-row: 3;
 	}
 
 	/*
-	 * Strip band: rows 1–2 = P1–P4; row 3 = empty, P5, P6. Spacer between strip and P5 hidden here.
+	 * Strip band: row 1 = P1–P4 (inner grid has spacer between tile rows); row 2 = rhythm spacer;
+	 * row 3 = P5, P6.
 	 */
 	.page-main.page-main--portfolio .page-main__body > .page-main__strip-band {
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-rows: auto minmax(var(--page-main-row-height), auto) auto;
 		column-gap: var(--grid-gap);
 		row-gap: var(--grid-gap);
 		grid-column: 1 / -1;
-		grid-row: 3;
+		grid-row: 5;
 		min-width: 0;
 		align-content: start;
 	}
 
 	.page-main.page-main--portfolio .page-main__strip-band > .page-main__placeholders {
 		grid-column: 1 / -1;
-		grid-row: 1 / span 2;
+		grid-row: 1;
 	}
 
 	.page-main.page-main--portfolio .page-main__strip-band > .page-main__row-spacer--strip-fifth {
-		display: none;
+		display: block;
+		grid-column: 1 / -1;
+		grid-row: 2;
+		min-height: var(--page-main-row-height);
 	}
 
 	.page-main.page-main--portfolio .page-main__strip-band > .page-main__placeholder-5 {
@@ -1625,32 +1671,32 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-7 {
 		grid-column: 1;
-		grid-row: 4;
+		grid-row: 7;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-8 {
 		grid-column: 2;
-		grid-row: 4;
+		grid-row: 7;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__row-spacer--lower-bands {
 		grid-column: 1 / -1;
-		grid-row: 5;
+		grid-row: 8;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-9 {
 		grid-column: 2;
-		grid-row: 6;
+		grid-row: 10;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-10 {
 		grid-column: 3;
-		grid-row: 6;
+		grid-row: 10;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-11 {
 		grid-column: 1;
-		grid-row: 7;
+		grid-row: 11;
 	}
 
 	.page-main.page-main--route .page-main__body {
@@ -1687,11 +1733,16 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		min-height: var(--page-main-row-height);
 	}
 
-	.page-main__row-spacer--lower-bands {
-		grid-column: 1 / -1;
-		grid-row: auto;
-		min-height: var(--page-main-row-height);
-	}
+.page-main__row-spacer--lower-bands {
+	grid-column: 1 / -1;
+	grid-row: auto;
+	min-height: var(--page-main-row-height);
+}
+
+/* Home mobile-only rhythm bands (see HomePortfolioMain.svelte) — no layout impact on desktop */
+.page-main__mobile-rhythm {
+	display: none;
+}
 
 	.page-main__placeholders {
 		grid-column: 1 / -1;
@@ -1712,6 +1763,7 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 	 */
 	.page-main.page-main--portfolio .page-main__placeholders {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-rows: auto minmax(var(--page-main-row-height), auto) auto;
 	}
 
 	.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link:nth-child(1) {
@@ -1726,12 +1778,12 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 
 	.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link:nth-child(4) {
 		grid-column: 1;
-		grid-row: 2;
+		grid-row: 3;
 	}
 
 	.page-main.page-main--portfolio .page-main__placeholders > .page-main__ux-panel-wrap:nth-child(5) {
 		grid-column: 2;
-		grid-row: 2;
+		grid-row: 3;
 	}
 
 	/*

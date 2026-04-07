@@ -244,7 +244,7 @@
 		</div>
 	</div>
 
-	<!-- Mobile / tablet: brand + theme + Menu -->
+	<!-- Mobile / tablet: brand + theme + Open -->
 	<div class="site-nav__mobile-bar">
 		<a
 			href={homePath}
@@ -272,7 +272,7 @@
 				aria-controls="site-nav-menu-dialog"
 				onclick={toggleMenu}
 			>
-				Menu
+				{menuOpen ? 'Close' : 'Open'}
 			</button>
 		</div>
 
@@ -281,29 +281,15 @@
 			bind:this={dialogEl}
 			id="site-nav-menu-dialog"
 			class="site-nav__dialog"
-			aria-labelledby="site-nav-menu-title"
+			aria-label="Site navigation"
 			onclose={onDialogClose}
 		>
 			<div class="site-nav__dialog-inner">
 				<header class="site-nav__dialog-head">
-					<h2 id="site-nav-menu-title" class="site-nav__dialog-title">Menu</h2>
-					<button type="button" class="site-nav__dialog-close" onclick={closeMenu} aria-label="Close menu">
-						×
-					</button>
+					<button type="button" class="site-nav__dialog-close" onclick={closeMenu}>Close</button>
 				</header>
 
 				<ul class="site-nav__dialog-list">
-					<li>
-						<a
-							href={homePath}
-							data-sveltekit-preload-data="tap"
-							class="site-nav__dialog-link"
-							aria-current={isHome ? 'page' : undefined}
-							onclick={closeMenu}
-						>
-							Home
-						</a>
-					</li>
 					<li>
 						<ScrambleUnderlineLink
 							href={indexPath}
@@ -713,35 +699,31 @@
 	.site-nav__dialog-head {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
+		justify-content: flex-end;
 		gap: 1rem;
 		margin-bottom: 1.5rem;
 		padding-bottom: 0;
 		border-bottom: none;
 	}
 
-	.site-nav__dialog-title {
-		margin: 0;
-		font-size: 0.875rem;
-		font-weight: 500;
-		letter-spacing: -0.02em;
-		color: var(--fg);
-	}
-
 	.site-nav__dialog-close {
-		min-width: 44px;
 		min-height: 44px;
-		margin: -0.5rem;
+		padding: 0.35rem 0.75rem;
+		margin: -0.35rem -0.5rem;
 		border: none;
 		border-radius: 6px;
 		background: transparent;
 		color: var(--fg);
-		font-size: 1.5rem;
-		line-height: 1;
+		font-family: inherit;
+		font-size: 0.875rem;
+		font-weight: 500;
+		letter-spacing: -0.02em;
+		line-height: 1.25;
 		cursor: pointer;
-		display: flex;
+		display: inline-flex;
 		align-items: center;
 		justify-content: center;
+		-webkit-tap-highlight-color: transparent;
 	}
 
 	.site-nav__dialog-close:hover {

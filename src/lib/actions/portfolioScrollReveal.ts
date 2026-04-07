@@ -39,16 +39,25 @@ export const portfolioScrollReveal: Action<HTMLElement> = (node) => {
 		const targets = node.querySelectorAll<HTMLElement>(PANEL_SELECTOR);
 		if (targets.length === 0) return;
 
+		/*
+		 * A negative bottom rootMargin delays intersection until the user scrolls — fine on desktop
+		 * where frost is optional polish. On mobile, panels felt “stuck” until halfway scrolled.
+		 */
 		io = new IntersectionObserver(
 			(entries) => {
 				for (const e of entries) {
 					if (e.isIntersecting) e.target.classList.add(IN_VIEW);
 				}
 			},
-			{ threshold: 0.1, rootMargin: '0px 0px -12% 0px' }
+			{ threshold: 0.05, rootMargin: '0px' }
 		);
 
-		targets.forEach((t) => io!.observe(t));
+		targets.forEach((t) => {
+			io!.observe(t);
+			/* IO can miss the first paint on some mobile WebViews — prime above-the-fold panels */
+			const r = t.getBoundingClientRect();
+			if (r.bottom > 0 && r.top < window.innerHeight) t.classList.add(IN_VIEW);
+		});
 	}
 
 	setup();
