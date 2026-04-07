@@ -457,7 +457,8 @@
 	.app-load-curtain {
 		position: fixed;
 		inset: 0;
-		z-index: 10050;
+		/* Above `.debug-grid-toggle` (99999) so % / name are never covered on mobile */
+		z-index: 100100;
 		pointer-events: auto;
 		touch-action: none;
 		background: var(--bg, #f0efed);
@@ -552,23 +553,34 @@
 		display: block;
 	}
 
+	/*
+	 * Narrow / mobile: anchor copy to the TOP safe area.
+	 * Bottom positioning fights Safari’s toolbar + home indicator (text gets clipped).
+	 */
 	@media (max-width: 900px) {
 		.app-load-curtain__counter {
-			right: max(16px, env(safe-area-inset-right, 0px));
-			/* Sit clearly above home indicator / gesture bar */
-			bottom: max(28px, calc(env(safe-area-inset-bottom, 0px) + 18px));
-			font-size: min(11vw, 52px);
+			top: max(10px, env(safe-area-inset-top, 0px));
+			right: max(14px, env(safe-area-inset-right, 0px));
+			bottom: auto;
+			font-size: min(10vw, 48px);
 		}
 
 		.app-load-curtain__name {
-			left: max(16px, env(safe-area-inset-left, 0px));
-			bottom: max(28px, calc(env(safe-area-inset-bottom, 0px) + 18px));
-			font-size: min(6vw, 30px);
+			top: max(10px, env(safe-area-inset-top, 0px));
+			left: max(14px, env(safe-area-inset-left, 0px));
+			bottom: auto;
+			max-width: min(72vw, 16rem);
+			font-size: min(5.5vw, 26px);
+			/* Slide from above (bottom-anchored transforms read wrong when we use `top`) */
+			transform: translateY(-140%);
 		}
 
-		/* Name slide: on narrow screens avoid tiny negative translate — land flush */
 		.app-load-curtain__name--show {
 			transform: translateY(0);
+		}
+
+		.app-load-curtain__name--hide {
+			transform: translateY(-140%);
 		}
 	}
 

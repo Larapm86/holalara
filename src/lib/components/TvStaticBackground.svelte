@@ -5,8 +5,14 @@
 	import { isExtraSoftTvTransition } from '$lib/theme';
 	import type { Theme } from '$lib/theme';
 
-	/** Lower = faster; 0.4–0.65 is a good TV-static feel */
-	const RES_SCALE = 0.55;
+	/** Lower = faster; mobile uses a smaller canvas so the noise loop costs less per frame */
+	function resScale(): number {
+		if (typeof window === 'undefined') return 0.55;
+		if (window.matchMedia('(max-width: 900px)').matches || window.matchMedia('(pointer: coarse)').matches) {
+			return 0.36;
+		}
+		return 0.55;
+	}
 
 	let canvasEl = $state<HTMLCanvasElement | undefined>(undefined);
 	/** Full-strength static (no CSS transition) */
@@ -50,8 +56,9 @@
 			const draw: CanvasRenderingContext2D = ctx2d;
 
 			function resize() {
-				const w = Math.max(1, Math.floor(window.innerWidth * RES_SCALE));
-				const h = Math.max(1, Math.floor(window.innerHeight * RES_SCALE));
+				const s = resScale();
+				const w = Math.max(1, Math.floor(window.innerWidth * s));
+				const h = Math.max(1, Math.floor(window.innerHeight * s));
 				surface.width = w;
 				surface.height = h;
 			}
@@ -85,22 +92,30 @@
 				startLoop();
 				void tick().then(() => {
 					const hold = readHoldMs(extraSoft);
+					const fastHandoff =
+						typeof window !== 'undefined' &&
+						(window.matchMedia('(max-width: 900px)').matches ||
+							window.matchMedia('(pointer: coarse)').matches);
 					setTimeout(() => {
-						requestAnimationFrame(() => {
-							requestAnimationFrame(() => {
+						const startFade = () => {
+							if (!alive) return;
+							fading = true;
+							const ms = readFadeMs(extraSoft);
+							fadeClear = setTimeout(() => {
 								if (!alive) return;
-								fading = true;
-								const ms = readFadeMs(extraSoft);
-								fadeClear = setTimeout(() => {
-									if (!alive) return;
-									visible = false;
-									fading = false;
-									extraSoft = false;
-									stopLoop();
-									fadeClear = undefined;
-								}, ms);
-							});
-						});
+								visible = false;
+								fading = false;
+								extraSoft = false;
+								stopLoop();
+								fadeClear = undefined;
+							}, ms);
+						};
+						/* Double rAF helps desktop paint; one frame is enough on mobile touch */
+						if (fastHandoff) {
+							requestAnimationFrame(startFade);
+						} else {
+							requestAnimationFrame(() => requestAnimationFrame(startFade));
+						}
 					}, hold);
 				});
 			}

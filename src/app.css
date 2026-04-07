@@ -41,6 +41,19 @@
 	--placeholder-cs-frost-saturate: 1.3;
 }
 
+/*
+ * Theme burst (TvStaticBackground): shorter fade + hold on narrow viewports so mobile
+ * does not feel like a multi-second delay after each tap.
+ */
+@media (max-width: 900px) {
+	:root {
+		--tv-static-fade-ms: 480;
+		--tv-static-fade-ms-soft: 640;
+		--tv-static-burst-hold-ms: 20;
+		--tv-static-burst-hold-ms-soft: 56;
+	}
+}
+
 /* Default (light) — also set explicitly on html */
 html {
 	--bg: #fafafa;

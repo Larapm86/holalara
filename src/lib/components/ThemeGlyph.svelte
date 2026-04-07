@@ -1,7 +1,20 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import type { Theme } from '$lib/theme';
 
 	let { theme, size = 'sm' }: { theme: Theme; size?: 'sm' | 'lg' } = $props();
+
+	/** Shorter glyph morph on mobile — matches tightened animation durations below */
+	const morphClearMs = $derived.by(() => {
+		if (!browser || typeof window === 'undefined') return 480;
+		if (
+			window.matchMedia('(max-width: 900px)').matches ||
+			window.matchMedia('(pointer: coarse)').matches
+		) {
+			return 360;
+		}
+		return 480;
+	});
 
 	const px = $derived(size === 'lg' ? 28 : 20);
 	const ink = '#0a0a0a';
@@ -182,6 +195,16 @@
 		to {
 			opacity: 1;
 			transform: scale(1) rotate(0deg);
+		}
+	}
+
+	@media (max-width: 900px), (pointer: coarse) {
+		.theme-glyph__layer--out {
+			animation-duration: 0.28s;
+		}
+
+		.theme-glyph__layer--in.theme-glyph__layer--enter {
+			animation-duration: 0.32s;
 		}
 	}
 
