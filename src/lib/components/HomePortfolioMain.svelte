@@ -26,9 +26,7 @@
 	<div class="page-main__slot grid-14">
 		{@render children()}
 	</div>
-	<div class="page-main__mobile-rhythm" data-rhythm-band="1" aria-hidden="true"></div>
 	<div class="page-main__row-spacer" aria-hidden="true"></div>
-	<div class="page-main__mobile-rhythm" data-rhythm-band="2" aria-hidden="true"></div>
 	<div class="page-main__strip-band">
 	<div class="page-main__placeholders">
 		<a
@@ -125,7 +123,6 @@
 		<div class="page-main__image-placeholder page-main__image-placeholder--lottie page-main__placeholder-6-panel"></div>
 	</a>
 	</div>
-	<div class="page-main__mobile-rhythm" data-rhythm-band="3" aria-hidden="true"></div>
 	<a
 		href="{base}/work/habit-loops"
 		class="page-main__placeholder-7 page-main__cs-link page-main__cs-link--yazio"
@@ -143,7 +140,6 @@
 		<div class="page-main__image-placeholder page-main__image-placeholder--lottie page-main__placeholder-8-panel"></div>
 	</a>
 	<div class="page-main__row-spacer page-main__row-spacer--lower-bands" aria-hidden="true"></div>
-	<div class="page-main__mobile-rhythm" data-rhythm-band="4" aria-hidden="true"></div>
 	<a
 		href="{base}/work/time-to-value"
 		class="page-main__placeholder-9 page-main__cs-link page-main__cs-link--time-to-value"
@@ -160,6 +156,7 @@
 	>
 		<div class="page-main__image-placeholder page-main__image-placeholder--lottie page-main__placeholder-10-panel"></div>
 	</a>
+	<div class="page-main__mobile-rhythm page-main__mobile-rhythm--before-11" aria-hidden="true"></div>
 	<a
 		href="{base}/work/systemic-growth"
 		class="page-main__placeholder-11 page-main__cs-link page-main__cs-link--systemic-growth"

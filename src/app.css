@@ -228,15 +228,23 @@ html[data-custom-cursor] [contenteditable='true'] {
 	flex-direction: column;
 	min-height: 100dvh;
 	padding: var(--page-margin);
+	transform: translateZ(0);
+	-webkit-transform: translateZ(0);
 	-webkit-animation: page-shell-enter 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
 	animation: page-shell-enter 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Same entrance on narrow viewports (iOS Safari uses -webkit-animation reliably) */
+/* Mobile WebKit: one-frame restart via pageShellEntrance action (see pageShellEntrance.ts) */
+.page-shell.page-shell--entrance-restart {
+	-webkit-animation: none !important;
+	animation: none !important;
+}
+
+/* Same entrance timing as desktop on narrow viewports */
 @media (max-width: 900px) {
 	.page-shell {
-		-webkit-animation: page-shell-enter 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
-		animation: page-shell-enter 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+		-webkit-animation: page-shell-enter 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+		animation: page-shell-enter 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
 	}
 }
 
@@ -1562,6 +1570,11 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 	}
 }
 
+/* Home: rhythm row before P11 on mobile only — hidden when portfolio body uses display:contents */
+.page-main__mobile-rhythm {
+	display: none;
+}
+
 @media (max-width: 900px) {
 	/*
 	 * Sticky footer on short pages: main is a flex column filling the shell; body holds the
@@ -1574,20 +1587,12 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		min-height: 100%;
 	}
 
-	/*
-	 * Snappier masked reveal + frost on home only (touch scroll felt sluggish at 1.05s).
-	 */
-	.page-main.page-main--portfolio {
-		--page-main-panel-reveal-duration: 0.72s;
-		--placeholder-cs-frost-duration: 150ms;
-	}
-
-	/* Home: 3-column checkerboard (empty cells = rhythm); route pages keep 14 tracks below */
+	/* Home: 3-column checkerboard; slightly tighter vertical rhythm under the nav */
 	.page-main.page-main--portfolio .page-main__body {
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 		column-gap: var(--grid-gap);
-		row-gap: var(--grid-gap);
+		row-gap: 12px;
 		width: 100%;
 		min-height: 0;
 		flex: 1 1 auto;
@@ -1601,34 +1606,19 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		grid-row: 1;
 	}
 
-	.page-main.page-main--portfolio .page-main__body > .page-main__mobile-rhythm {
+	.page-main.page-main--portfolio .page-main__body > .page-main__mobile-rhythm--before-11 {
 		display: block;
 		grid-column: 1 / -1;
+		grid-row: 7;
 		min-height: var(--page-main-row-height);
 		pointer-events: none;
-	}
-
-	.page-main.page-main--portfolio .page-main__body > .page-main__mobile-rhythm[data-rhythm-band='1'] {
-		grid-row: 2;
-	}
-
-	.page-main.page-main--portfolio .page-main__body > .page-main__mobile-rhythm[data-rhythm-band='2'] {
-		grid-row: 4;
-	}
-
-	.page-main.page-main--portfolio .page-main__body > .page-main__mobile-rhythm[data-rhythm-band='3'] {
-		grid-row: 6;
-	}
-
-	.page-main.page-main--portfolio .page-main__body > .page-main__mobile-rhythm[data-rhythm-band='4'] {
-		grid-row: 9;
 	}
 
 	.page-main.page-main--portfolio
 		.page-main__body
 		> .page-main__row-spacer:not(.page-main__row-spacer--strip-fifth):not(.page-main__row-spacer--lower-bands) {
 		grid-column: 1 / -1;
-		grid-row: 3;
+		grid-row: 2;
 	}
 
 	/*
@@ -1642,7 +1632,7 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		column-gap: var(--grid-gap);
 		row-gap: var(--grid-gap);
 		grid-column: 1 / -1;
-		grid-row: 5;
+		grid-row: 3;
 		min-width: 0;
 		align-content: start;
 	}
@@ -1671,32 +1661,32 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-7 {
 		grid-column: 1;
-		grid-row: 7;
+		grid-row: 4;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-8 {
 		grid-column: 2;
-		grid-row: 7;
+		grid-row: 4;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__row-spacer--lower-bands {
 		grid-column: 1 / -1;
-		grid-row: 8;
+		grid-row: 5;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-9 {
 		grid-column: 2;
-		grid-row: 10;
+		grid-row: 6;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-10 {
 		grid-column: 3;
-		grid-row: 10;
+		grid-row: 6;
 	}
 
 	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-11 {
 		grid-column: 1;
-		grid-row: 11;
+		grid-row: 8;
 	}
 
 	.page-main.page-main--route .page-main__body {
@@ -1733,16 +1723,11 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		min-height: var(--page-main-row-height);
 	}
 
-.page-main__row-spacer--lower-bands {
-	grid-column: 1 / -1;
-	grid-row: auto;
-	min-height: var(--page-main-row-height);
-}
-
-/* Home mobile-only rhythm bands (see HomePortfolioMain.svelte) — no layout impact on desktop */
-.page-main__mobile-rhythm {
-	display: none;
-}
+	.page-main__row-spacer--lower-bands {
+		grid-column: 1 / -1;
+		grid-row: auto;
+		min-height: var(--page-main-row-height);
+	}
 
 	.page-main__placeholders {
 		grid-column: 1 / -1;

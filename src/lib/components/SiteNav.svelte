@@ -244,7 +244,7 @@
 		</div>
 	</div>
 
-	<!-- Mobile / tablet: brand + theme + Open -->
+	<!-- Mobile / tablet: brand + theme + Menu -->
 	<div class="site-nav__mobile-bar">
 		<a
 			href={homePath}
@@ -272,7 +272,7 @@
 				aria-controls="site-nav-menu-dialog"
 				onclick={toggleMenu}
 			>
-				{menuOpen ? 'Close' : 'Open'}
+				{menuOpen ? 'Close' : 'Menu'}
 			</button>
 		</div>
 
@@ -332,6 +332,13 @@
 		z-index: 200;
 		padding-bottom: 0.75rem;
 		margin-bottom: 0.5rem;
+	}
+
+	@media (max-width: 900px) {
+		.site-nav {
+			padding-bottom: 0.35rem;
+			margin-bottom: 0.25rem;
+		}
 	}
 
 	/* —— Desktop —— */
@@ -696,6 +703,35 @@
 		background: color-mix(in srgb, var(--fg) 32%, transparent);
 	}
 
+	@keyframes site-nav-dialog-backdrop-in {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
+	@keyframes site-nav-dialog-surface-in {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
+	@keyframes site-nav-dialog-inner-in {
+		from {
+			opacity: 0;
+			transform: translate3d(0, 0.55rem, 0);
+		}
+		to {
+			opacity: 1;
+			transform: translate3d(0, 0, 0);
+		}
+	}
+
 	.site-nav__dialog-head {
 		display: flex;
 		align-items: center;
@@ -706,28 +742,34 @@
 		border-bottom: none;
 	}
 
+	/* Plain text control (not a “button” chrome) — still a <button> for focus + a11y */
 	.site-nav__dialog-close {
-		min-height: 44px;
-		padding: 0.35rem 0.75rem;
-		margin: -0.35rem -0.5rem;
+		-webkit-appearance: none;
+		appearance: none;
+		margin: 0;
+		padding: 0.35rem 0;
 		border: none;
-		border-radius: 6px;
-		background: transparent;
-		color: var(--fg);
+		border-radius: 0;
+		background: none;
+		box-shadow: none;
+		color: inherit;
 		font-family: inherit;
 		font-size: 0.875rem;
 		font-weight: 500;
 		letter-spacing: -0.02em;
 		line-height: 1.25;
 		cursor: pointer;
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+		min-height: 44px;
 		display: inline-flex;
 		align-items: center;
-		justify-content: center;
+		justify-content: flex-end;
 		-webkit-tap-highlight-color: transparent;
 	}
 
 	.site-nav__dialog-close:hover {
-		background: color-mix(in srgb, var(--fg) 6%, transparent);
+		opacity: 0.72;
 	}
 
 	.site-nav__dialog-close:focus-visible {
@@ -810,6 +852,10 @@
 	 * the UA `dialog:not([open]) { display: none }` and the closed dialog covers the whole page.
 	 */
 	@media (max-width: 1024px) {
+		.site-nav__dialog::backdrop {
+			animation: site-nav-dialog-backdrop-in 0.38s ease forwards;
+		}
+
 		.site-nav__dialog[open] {
 			position: fixed;
 			inset: 0;
@@ -822,6 +868,7 @@
 			flex-direction: column;
 			overflow: hidden;
 			box-shadow: none;
+			animation: site-nav-dialog-surface-in 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
 		}
 
 		.site-nav__dialog[open] .site-nav__dialog-inner {
@@ -835,11 +882,30 @@
 			padding-bottom: calc(var(--page-margin) + env(safe-area-inset-bottom, 0px));
 			padding-left: max(var(--page-margin), env(safe-area-inset-left, 0px));
 			padding-right: max(var(--page-margin), env(safe-area-inset-right, 0px));
+			animation: site-nav-dialog-inner-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 		}
 
 		.site-nav__dialog[open] .site-nav__dialog-meta {
 			margin-top: auto;
 			padding-top: 1.5rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) and (max-width: 1024px) {
+		.site-nav__dialog::backdrop {
+			animation: none;
+			opacity: 1;
+		}
+
+		.site-nav__dialog[open] {
+			animation: none;
+			opacity: 1;
+		}
+
+		.site-nav__dialog[open] .site-nav__dialog-inner {
+			animation: none;
+			opacity: 1;
+			transform: none;
 		}
 	}
 

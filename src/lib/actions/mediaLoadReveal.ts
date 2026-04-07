@@ -1,4 +1,5 @@
 import type { Action } from 'svelte/action';
+import { browser } from '$app/environment';
 import { tick } from 'svelte';
 
 function whenVideoReady(v: HTMLVideoElement): Promise<void> {
@@ -65,7 +66,14 @@ function collectLoaders(node: HTMLElement): Promise<void>[] {
 function afterPaint(): Promise<void> {
 	return new Promise<void>((resolve) => {
 		requestAnimationFrame(() => {
-			requestAnimationFrame(() => resolve());
+			requestAnimationFrame(() => {
+				/* Narrow viewports need one more frame so WebKit paints translateY(108%) before reveal. */
+				if (browser && window.matchMedia('(max-width: 900px)').matches) {
+					requestAnimationFrame(() => resolve());
+				} else {
+					resolve();
+				}
+			});
 		});
 	});
 }

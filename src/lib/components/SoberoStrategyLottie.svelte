@@ -2,6 +2,10 @@
 	import { browser } from '$app/environment';
 	import { base } from '$app/paths';
 	import { onMount, tick } from 'svelte';
+	import type { AnimationItem } from 'lottie-web';
+
+	/** Must match IntersectionObserver rootMargin vertical inset (px). */
+	const VIEW_MARGIN_PX = 120;
 
 	type Props = {
 		/** Filename under `/lottie/` */
@@ -19,12 +23,26 @@
 
 	let containerEl = $state<HTMLDivElement | undefined>(undefined);
 
+	function isNearViewport(el: HTMLElement) {
+		const r = el.getBoundingClientRect();
+		const m = VIEW_MARGIN_PX;
+		return (
+			r.bottom > -m &&
+			r.top < window.innerHeight + m &&
+			r.right > 0 &&
+			r.left < window.innerWidth
+		);
+	}
+
 	onMount(() => {
 		if (!browser) return;
 
-		let anim: { destroy: () => void; resize: () => void } | undefined;
+		let anim: AnimationItem | undefined;
 		let cancelled = false;
 		let resizeObserver: ResizeObserver | undefined;
+		let intersectionObserver: IntersectionObserver | undefined;
+		let roRaf = 0;
+		let onVisibility: (() => void) | undefined;
 
 		void (async () => {
 			await tick();
@@ -32,6 +50,16 @@
 
 			function dispatchLottieReady() {
 				containerEl?.dispatchEvent(new CustomEvent('lottie-ready', { bubbles: true }));
+			}
+
+			function applyVisibilityPlayback() {
+				if (!anim || !containerEl || cancelled) return;
+				if (document.hidden) {
+					anim.pause();
+					return;
+				}
+				if (isNearViewport(containerEl)) anim.play();
+				else anim.pause();
 			}
 
 			try {
@@ -47,7 +75,7 @@
 					container: containerEl,
 					renderer: 'svg',
 					loop: true,
-					autoplay: true,
+					autoplay: false,
 					animationData: data,
 					rendererSettings: {
 						preserveAspectRatio: fit === 'contain' ? 'xMidYMid meet' : 'xMidYMid slice',
@@ -55,15 +83,44 @@
 					}
 				});
 
+				anim.setSubframe(false);
+
+				intersectionObserver = new IntersectionObserver(
+					([entry]) => {
+						if (!anim || !entry || cancelled) return;
+						if (document.hidden) {
+							anim.pause();
+							return;
+						}
+						if (entry.isIntersecting) anim.play();
+						else anim.pause();
+					},
+					{ root: null, rootMargin: `${VIEW_MARGIN_PX}px 0px`, threshold: 0 }
+				);
+				intersectionObserver.observe(containerEl);
+
+				onVisibility = () => {
+					if (document.hidden) anim?.pause();
+					else applyVisibilityPlayback();
+				};
+				document.addEventListener('visibilitychange', onVisibility);
+
 				requestAnimationFrame(() => {
-					anim?.resize();
+					applyVisibilityPlayback();
 					requestAnimationFrame(() => {
-						dispatchLottieReady();
+						anim?.resize();
+						requestAnimationFrame(() => {
+							dispatchLottieReady();
+						});
 					});
 				});
 
 				resizeObserver = new ResizeObserver(() => {
-					anim?.resize();
+					if (roRaf) return;
+					roRaf = requestAnimationFrame(() => {
+						roRaf = 0;
+						if (!cancelled) anim?.resize();
+					});
 				});
 				resizeObserver.observe(containerEl);
 			} catch {
@@ -73,7 +130,10 @@
 
 		return () => {
 			cancelled = true;
+			if (roRaf) cancelAnimationFrame(roRaf);
+			if (onVisibility) document.removeEventListener('visibilitychange', onVisibility);
 			resizeObserver?.disconnect();
+			intersectionObserver?.disconnect();
 			anim?.destroy();
 		};
 	});

@@ -12,6 +12,7 @@
 	import { onNavigate } from '$app/navigation';
 	import { onMount, tick } from 'svelte';
 	import '../app.css';
+	import { pageShellEntrance } from '$lib/actions/pageShellEntrance';
 
 	let { children } = $props();
 
@@ -122,7 +123,7 @@
 	Grid overlay: {debugGrid ? 'On' : 'Off'}
 </button>
 
-<div class="page-shell" class:debug-grid={debugGrid}>
+<div class="page-shell" class:debug-grid={debugGrid} use:pageShellEntrance>
 	<SiteNav />
 	{@render children()}
 </div>
