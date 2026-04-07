@@ -1529,9 +1529,10 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		min-height: 100%;
 	}
 
+	/* Home: 3-column checkerboard (empty cells = rhythm); route pages keep 14 tracks below */
 	.page-main.page-main--portfolio .page-main__body {
 		display: grid;
-		grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 		column-gap: var(--grid-gap);
 		row-gap: var(--grid-gap);
 		width: 100%;
@@ -1540,6 +1541,68 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		grid-template-rows: auto;
 		grid-auto-rows: minmax(0, auto);
 		align-content: start;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__slot {
+		grid-column: 1 / -1;
+		grid-row: 1;
+	}
+
+	.page-main.page-main--portfolio
+		.page-main__body
+		> .page-main__row-spacer:not(.page-main__row-spacer--strip-fifth):not(.page-main__row-spacer--lower-bands) {
+		grid-column: 1 / -1;
+		grid-row: 2;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholders {
+		grid-column: 1 / -1;
+		grid-row: 3;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__row-spacer--strip-fifth {
+		grid-column: 1 / -1;
+		grid-row: 4;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-5 {
+		grid-column: 1;
+		grid-row: 5;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-6 {
+		grid-column: 3;
+		grid-row: 5;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-7 {
+		grid-column: 1;
+		grid-row: 6;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-8 {
+		grid-column: 2;
+		grid-row: 6;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__row-spacer--lower-bands {
+		grid-column: 1 / -1;
+		grid-row: 7;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-9 {
+		grid-column: 2;
+		grid-row: 8;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-10 {
+		grid-column: 3;
+		grid-row: 8;
+	}
+
+	.page-main.page-main--portfolio .page-main__body > .page-main__placeholder-11 {
+		grid-column: 1;
+		grid-row: 9;
 	}
 
 	.page-main.page-main--route .page-main__body {
@@ -1594,6 +1657,34 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 		max-height: none;
 		overflow: visible;
 		align-items: stretch;
+	}
+
+	/*
+	 * Home strip (placeholders 1–4): 3-column checkerboard — [1][2][ ], [ ][3][4].
+	 * (nth-child(3) is .page-main__placeholders-gap, display:none — not a grid item.)
+	 */
+	.page-main.page-main--portfolio .page-main__placeholders {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link:nth-child(1) {
+		grid-column: 1;
+		grid-row: 1;
+	}
+
+	.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link:nth-child(2) {
+		grid-column: 2;
+		grid-row: 1;
+	}
+
+	.page-main.page-main--portfolio .page-main__placeholders > .page-main__cs-link:nth-child(4) {
+		grid-column: 2;
+		grid-row: 2;
+	}
+
+	.page-main.page-main--portfolio .page-main__placeholders > .page-main__ux-panel-wrap:nth-child(5) {
+		grid-column: 3;
+		grid-row: 2;
 	}
 
 	/* Lower bands: pairs (5+6, 7+8, 9+10); 11 full width */
