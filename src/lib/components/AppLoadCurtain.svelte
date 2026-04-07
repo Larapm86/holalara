@@ -29,7 +29,7 @@
 	const FAILSAFE_DISMISS_MS = 8500;
 	const SNAPSHOT_MAX_DIM = 640;
 	const TARGET_WAIT_RETRY_MS = 120;
-	const TARGET_WAIT_MAX_RETRIES = 18;
+	const TARGET_WAIT_MAX_RETRIES = 45;
 	const GAP = 3;
 	const MOSAIC_ROWS: Array<Array<[number, number]>> = [
 		[
@@ -81,6 +81,8 @@
 	}
 
 	function readTargetTiles(): HTMLElement[] {
+		const root =
+			document.querySelector<HTMLElement>('main.page-main.page-main--portfolio') ?? document.documentElement;
 		const selectors = [
 			'.page-main__placeholders > .page-main__cs-link:nth-child(1)',
 			'.page-main__placeholders > .page-main__cs-link:nth-child(2)',
@@ -95,7 +97,7 @@
 			'.page-main__body > .page-main__placeholder-11'
 		];
 		return selectors
-			.map((sel) => document.querySelector<HTMLElement>(sel))
+			.map((sel) => root.querySelector<HTMLElement>(sel))
 			.filter((node): node is HTMLElement => node !== null);
 	}
 
@@ -219,16 +221,34 @@
 		tiles = tiles.map((t, idx) => (idx === i ? { ...t, ...patch } : t));
 	}
 
-	function runSequence() {
+	/** Counter + name — independent of DOM targets so they always run. */
+	function startLoaderUi(reduced: boolean) {
+		if (reduced) {
+			counter = 100;
+			timeoutIds.push(window.setTimeout(() => (nameState = 'show'), 80));
+			timeoutIds.push(window.setTimeout(() => (nameState = 'hide'), 520));
+			return;
+		}
+		const counterStart = performance.now();
+		const counterTick = (now: number) => {
+			const p = Math.min((now - counterStart) / COUNTER_MS, 1);
+			counter = Math.floor((1 - Math.pow(1 - p, 2.2)) * 100);
+			if (p < 1) rafId = requestAnimationFrame(counterTick);
+			else counter = 100;
+		};
+		rafId = requestAnimationFrame(counterTick);
+		timeoutIds.push(window.setTimeout(() => (nameState = 'show'), NAME_SHOW_MS));
+	}
+
+	function runTileSequence(reduced: boolean) {
 		const targets = readTargetTiles();
 		if (targets.length === 0) {
 			if (targetRetryCount < TARGET_WAIT_MAX_RETRIES) {
 				targetRetryCount += 1;
-				const retryId = window.setTimeout(() => runSequence(), TARGET_WAIT_RETRY_MS);
+				const retryId = window.setTimeout(() => runTileSequence(reduced), TARGET_WAIT_RETRY_MS);
 				timeoutIds.push(retryId);
 				return;
 			}
-			/* Fallback: do not deadlock if targets never become queryable. */
 			sequenceDone = true;
 			maybeDismiss();
 			return;
@@ -240,8 +260,26 @@
 		const mosaic = buildMosaic(vw).slice(0, targets.length);
 		const vcx = vw / 2;
 		const vcy = vh / 2;
-		/* 0.04 reads as invisible on narrow screens; keep burst readable */
 		const burstStartScale = vw < 900 ? 0.16 : 0.06;
+
+		if (reduced) {
+			tiles = targets.map((target) => {
+				const rect = target.getBoundingClientRect();
+				return {
+					left: rect.left + rect.width / 2,
+					top: rect.top + rect.height / 2,
+					width: rect.width,
+					height: rect.height,
+					scale: 1,
+					opacity: 1,
+					transition: 'none',
+					html: tileMarkupFromTarget(target)
+				};
+			});
+			sequenceDone = true;
+			maybeDismiss();
+			return;
+		}
 
 		tiles = mosaic.map((m, i) => {
 			return {
@@ -260,17 +298,6 @@
 			.map((m, i) => ({ i, d: Math.hypot(m.cx, m.cy) }))
 			.sort((a, b) => a.d - b.d)
 			.map((x) => x.i);
-
-		const counterStart = performance.now();
-		const counterTick = (now: number) => {
-			const p = Math.min((now - counterStart) / COUNTER_MS, 1);
-			counter = Math.floor((1 - Math.pow(1 - p, 2.2)) * 100);
-			if (p < 1) rafId = requestAnimationFrame(counterTick);
-			else counter = 100;
-		};
-		rafId = requestAnimationFrame(counterTick);
-
-		timeoutIds.push(window.setTimeout(() => (nameState = 'show'), NAME_SHOW_MS));
 
 		timeoutIds.push(
 			window.setTimeout(() => {
@@ -311,8 +338,7 @@
 										let settled = 0;
 										const tileCount = targets.length;
 										for (let i = 0; i < tileCount; i += 1) {
-											const target = targets[i];
-											if (!target) return;
+											const target = targets[i]!;
 											const rect = target.getBoundingClientRect();
 											timeoutIds.push(
 												window.setTimeout(() => {
@@ -388,12 +414,9 @@
 		}, FAILSAFE_DISMISS_MS);
 
 		const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-		if (reduced) {
-			sequenceDone = true;
-		} else {
-			const startId = window.setTimeout(() => runSequence(), 20);
-			timeoutIds.push(startId);
-		}
+		startLoaderUi(reduced);
+		const startId = window.setTimeout(() => runTileSequence(reduced), 20);
+		timeoutIds.push(startId);
 
 		const onReady = () => {
 			readySignal = true;
@@ -462,9 +485,9 @@
 		font-weight: 500;
 		line-height: 1;
 		letter-spacing: -0.04em;
-		color: #111;
+		color: var(--fg, #111);
 		font-variant-numeric: tabular-nums;
-		text-shadow: 0 1px 0 color-mix(in srgb, var(--bg, #f0efed) 70%, transparent);
+		text-shadow: 0 1px 2px color-mix(in srgb, var(--bg, #f0efed) 85%, transparent);
 	}
 
 	.app-load-curtain__name {
@@ -477,10 +500,10 @@
 		font-weight: 500;
 		line-height: 1;
 		letter-spacing: -0.03em;
-		color: #111;
+		color: var(--fg, #111);
 		transform: translateY(115%);
 		transition: transform 1.1s cubic-bezier(0.16, 1, 0.3, 1);
-		text-shadow: 0 1px 0 color-mix(in srgb, var(--bg, #f0efed) 70%, transparent);
+		text-shadow: 0 1px 2px color-mix(in srgb, var(--bg, #f0efed) 85%, transparent);
 	}
 
 	.app-load-curtain__name--show {
