@@ -28,6 +28,8 @@
 	const GRID_STAGGER_MS = 60;
 	const FAILSAFE_DISMISS_MS = 8500;
 	const SNAPSHOT_MAX_DIM = 640;
+	const TARGET_WAIT_RETRY_MS = 120;
+	const TARGET_WAIT_MAX_RETRIES = 18;
 	const GAP = 3;
 	const MOSAIC_ROWS: Array<Array<[number, number]>> = [
 		[
@@ -173,6 +175,7 @@
 	let rafId: number | null = null;
 	let timeoutIds: number[] = [];
 	let failsafeId: number | null = null;
+	let targetRetryCount = 0;
 
 	function resetTimers() {
 		if (rafId !== null) cancelAnimationFrame(rafId);
@@ -214,10 +217,18 @@
 	function runSequence() {
 		const targets = readTargetTiles();
 		if (targets.length === 0) {
+			if (targetRetryCount < TARGET_WAIT_MAX_RETRIES) {
+				targetRetryCount += 1;
+				const retryId = window.setTimeout(() => runSequence(), TARGET_WAIT_RETRY_MS);
+				timeoutIds.push(retryId);
+				return;
+			}
+			/* Fallback: do not deadlock if targets never become queryable. */
 			sequenceDone = true;
 			maybeDismiss();
 			return;
 		}
+		targetRetryCount = 0;
 
 		const mosaic = buildMosaic().slice(0, targets.length);
 		const vcx = window.innerWidth / 2;
@@ -360,6 +371,7 @@
 		counter = 0;
 		nameState = 'idle';
 		tiles = [];
+		targetRetryCount = 0;
 		resetTimers();
 		failsafeId = window.setTimeout(() => {
 			if (!show) return;
