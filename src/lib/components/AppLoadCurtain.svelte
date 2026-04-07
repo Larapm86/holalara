@@ -2,6 +2,7 @@
 	import { browser } from '$app/environment';
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
+	import { tick } from 'svelte';
 	import { APP_CURTAIN_SESSION_KEY } from '$lib/appLoadCurtain';
 
 	type TileState = {
@@ -30,6 +31,7 @@
 	const SNAPSHOT_MAX_DIM = 640;
 	const TARGET_WAIT_RETRY_MS = 120;
 	const TARGET_WAIT_MAX_RETRIES = 45;
+	const TARGET_WAIT_MAX_RETRIES_COARSE = 85;
 	const GAP = 3;
 	const MOSAIC_ROWS: Array<Array<[number, number]>> = [
 		[
@@ -81,24 +83,92 @@
 	}
 
 	function readTargetTiles(): HTMLElement[] {
-		const root =
-			document.querySelector<HTMLElement>('main.page-main.page-main--portfolio') ?? document.documentElement;
-		const selectors = [
-			'.page-main__placeholders > .page-main__cs-link:nth-child(1)',
-			'.page-main__placeholders > .page-main__cs-link:nth-child(2)',
-			'.page-main__placeholders > .page-main__cs-link:nth-child(4)',
-			'.page-main__placeholders > .page-main__ux-panel-wrap:nth-child(5) .page-main__cs-link--ux-panel',
-			'.page-main__strip-band > .page-main__placeholder-5',
-			'.page-main__strip-band > .page-main__placeholder-6',
-			'.page-main__body > .page-main__placeholder-7',
-			'.page-main__body > .page-main__placeholder-8',
-			'.page-main__body > .page-main__placeholder-9',
-			'.page-main__body > .page-main__placeholder-10',
-			'.page-main__body > .page-main__placeholder-11'
+		const main =
+			document.querySelector<HTMLElement>('main.page-main.page-main--portfolio') ??
+			document.querySelector<HTMLElement>('main.page-main--portfolio');
+		const scope: Document | HTMLElement = main ?? document;
+		const selectors: Array<{ primary: string; fallback?: string }> = [
+			{ primary: '.page-main__placeholders > .page-main__cs-link:nth-child(1)' },
+			{ primary: '.page-main__placeholders > .page-main__cs-link:nth-child(2)' },
+			{ primary: '.page-main__placeholders > .page-main__cs-link:nth-child(4)' },
+			{
+				primary:
+					'.page-main__placeholders > .page-main__ux-panel-wrap:nth-child(5) .page-main__cs-link--ux-panel'
+			},
+			{
+				primary: '.page-main__strip-band > .page-main__placeholder-5',
+				fallback: '.page-main__placeholder-5'
+			},
+			{
+				primary: '.page-main__strip-band > .page-main__placeholder-6',
+				fallback: '.page-main__placeholder-6'
+			},
+			{ primary: '.page-main__body > .page-main__placeholder-7', fallback: '.page-main__placeholder-7' },
+			{ primary: '.page-main__body > .page-main__placeholder-8', fallback: '.page-main__placeholder-8' },
+			{ primary: '.page-main__body > .page-main__placeholder-9', fallback: '.page-main__placeholder-9' },
+			{ primary: '.page-main__body > .page-main__placeholder-10', fallback: '.page-main__placeholder-10' },
+			{ primary: '.page-main__body > .page-main__placeholder-11', fallback: '.page-main__placeholder-11' }
 		];
-		return selectors
-			.map((sel) => root.querySelector<HTMLElement>(sel))
-			.filter((node): node is HTMLElement => node !== null);
+		const out: HTMLElement[] = [];
+		for (const { primary, fallback } of selectors) {
+			let el =
+				scope.querySelector<HTMLElement>(primary) ?? document.querySelector<HTMLElement>(primary);
+			if (!el && fallback) {
+				el = scope.querySelector<HTMLElement>(fallback) ?? document.querySelector<HTMLElement>(fallback);
+			}
+			if (el) out.push(el);
+		}
+		return out;
+	}
+
+	/**
+	 * `left` / `top` on tiles are vs the load curtain’s padding box; `getBoundingClientRect` is
+	 * viewport-space — convert so mobile safe-area + borders don’t park tiles off-screen.
+	 */
+	function curtainMetrics(): { originX: number; originY: number; centerX: number; centerY: number } {
+		const el = document.querySelector<HTMLElement>('.app-load-curtain');
+		if (!el) {
+			return {
+				originX: 0,
+				originY: 0,
+				centerX: window.innerWidth / 2,
+				centerY: window.innerHeight / 2
+			};
+		}
+		const r = el.getBoundingClientRect();
+		const s = getComputedStyle(el);
+		const bl = parseFloat(s.borderLeftWidth) || 0;
+		const bt = parseFloat(s.borderTopWidth) || 0;
+		const br = parseFloat(s.borderRightWidth) || 0;
+		const bb = parseFloat(s.borderBottomWidth) || 0;
+		const originX = r.left + bl;
+		const originY = r.top + bt;
+		const padW = r.width - bl - br;
+		const padH = r.height - bt - bb;
+		return {
+			originX,
+			originY,
+			centerX: originX + padW / 2,
+			centerY: originY + padH / 2
+		};
+	}
+
+	function viewCenterToTileLocal(cm: ReturnType<typeof curtainMetrics>): { x: number; y: number } {
+		return {
+			x: cm.centerX - cm.originX,
+			y: cm.centerY - cm.originY
+		};
+	}
+
+	function targetCenterToTileLocal(target: HTMLElement, cm: ReturnType<typeof curtainMetrics>): {
+		x: number;
+		y: number;
+	} {
+		const rect = target.getBoundingClientRect();
+		return {
+			x: rect.left + rect.width / 2 - cm.originX,
+			y: rect.top + rect.height / 2 - cm.originY
+		};
 	}
 
 	function snapshotFromVideo(video: HTMLVideoElement): string | null {
@@ -241,9 +311,13 @@
 	}
 
 	function runTileSequence(reduced: boolean) {
+		const maxRetries =
+			typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+				? TARGET_WAIT_MAX_RETRIES_COARSE
+				: TARGET_WAIT_MAX_RETRIES;
 		const targets = readTargetTiles();
 		if (targets.length === 0) {
-			if (targetRetryCount < TARGET_WAIT_MAX_RETRIES) {
+			if (targetRetryCount < maxRetries) {
 				targetRetryCount += 1;
 				const retryId = window.setTimeout(() => runTileSequence(reduced), TARGET_WAIT_RETRY_MS);
 				timeoutIds.push(retryId);
@@ -256,18 +330,20 @@
 		targetRetryCount = 0;
 
 		const vw = window.innerWidth;
-		const vh = window.innerHeight;
 		const mosaic = buildMosaic(vw).slice(0, targets.length);
-		const vcx = vw / 2;
-		const vcy = vh / 2;
+		const cm = curtainMetrics();
+		const vc = viewCenterToTileLocal(cm);
+		const vcx = vc.x;
+		const vcy = vc.y;
 		const burstStartScale = vw < 900 ? 0.16 : 0.06;
 
 		if (reduced) {
 			tiles = targets.map((target) => {
 				const rect = target.getBoundingClientRect();
+				const pt = targetCenterToTileLocal(target, cm);
 				return {
-					left: rect.left + rect.width / 2,
-					top: rect.top + rect.height / 2,
+					left: pt.x,
+					top: pt.y,
 					width: rect.width,
 					height: rect.height,
 					scale: 1,
@@ -340,11 +416,12 @@
 										for (let i = 0; i < tileCount; i += 1) {
 											const target = targets[i]!;
 											const rect = target.getBoundingClientRect();
+											const gridPt = targetCenterToTileLocal(target, cm);
 											timeoutIds.push(
 												window.setTimeout(() => {
 													setTile(i, {
-														left: rect.left + rect.width / 2,
-														top: rect.top + rect.height / 2,
+														left: gridPt.x,
+														top: gridPt.y,
 														width: rect.width,
 														height: rect.height,
 														transition: [
@@ -415,8 +492,17 @@
 
 		const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 		startLoaderUi(reduced);
-		const startId = window.setTimeout(() => runTileSequence(reduced), 20);
-		timeoutIds.push(startId);
+
+		let cancelled = false;
+		void (async () => {
+			await tick();
+			await new Promise<void>((r) => requestAnimationFrame(() => r()));
+			if (cancelled) return;
+			/* Second frame: mobile WebKit often hasn’t laid out the portfolio grid on the first paint */
+			await new Promise<void>((r) => requestAnimationFrame(() => r()));
+			if (cancelled) return;
+			runTileSequence(reduced);
+		})();
 
 		const onReady = () => {
 			readySignal = true;
@@ -424,6 +510,7 @@
 		};
 		window.addEventListener('holalara:curtain-ready', onReady, { once: true });
 		return () => {
+			cancelled = true;
 			window.removeEventListener('holalara:curtain-ready', onReady);
 			resetTimers();
 		};
@@ -481,7 +568,7 @@
 		position: absolute;
 		right: 34px;
 		bottom: 30px;
-		z-index: 4;
+		z-index: 6;
 		font-size: min(5.5vw, 65px);
 		font-weight: 500;
 		line-height: 1;
@@ -495,6 +582,7 @@
 		position: absolute;
 		left: 30px;
 		bottom: 24px;
+		z-index: 1;
 		z-index: 4;
 		max-width: calc(100% - 2rem);
 		font-size: min(3.5vw, 44px);
@@ -519,7 +607,7 @@
 	.app-load-curtain__stage {
 		position: absolute;
 		inset: 0;
-		z-index: 2;
+		z-index: 5;
 		pointer-events: none;
 		isolation: isolate;
 	}
