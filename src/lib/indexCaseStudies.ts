@@ -21,7 +21,7 @@ export const INDEX_CASE_STUDIES: readonly IndexCaseStudy[] = [
 	{
 		href: `${base}/work/ux-maturity`,
 		title: 'Improving UX maturity at scale',
-		subtitle: 'WHO'
+		subtitle: 'Kwit'
 	},
 	{
 		href: `${base}/work/premium-retention`,

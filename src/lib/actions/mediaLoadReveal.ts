@@ -1,11 +1,10 @@
 import type { Action } from 'svelte/action';
-import {
-	APP_CURTAIN_SESSION_KEY,
-	skipHomeLoadCurtain,
-	waitForInitialCurtainHome
-} from '$lib/appLoadCurtain';
 import { browser } from '$app/environment';
 import { tick } from 'svelte';
+
+const REVEAL_MAX_WAIT_MS = 520;
+const LOTTIE_READY_MAX_WAIT_MS = 320;
+const PAGE_SYNC_REVEAL_DELAY_MS = 500;
 
 function whenVideoReady(v: HTMLVideoElement): Promise<void> {
 	return new Promise((resolve) => {
@@ -46,7 +45,9 @@ function whenImgReady(img: HTMLImageElement): Promise<void> {
 
 function whenLottieReady(el: Element): Promise<void> {
 	return new Promise((resolve) => {
-		el.addEventListener('lottie-ready', () => resolve(), { once: true });
+		const done = () => resolve();
+		el.addEventListener('lottie-ready', done, { once: true });
+		window.setTimeout(done, LOTTIE_READY_MAX_WAIT_MS);
 	});
 }
 
@@ -98,6 +99,14 @@ function markLoadedNoAnim(...elements: HTMLElement[]): void {
 	});
 }
 
+function preferInstantReveal(): boolean {
+	if (!browser || typeof window === 'undefined') return false;
+	return (
+		window.matchMedia('(max-width: 1024px)').matches ||
+		window.matchMedia('(pointer: coarse)').matches
+	);
+}
+
 async function afterLoadersResolve(
 	node: HTMLElement,
 	cancelled: () => boolean,
@@ -118,7 +127,12 @@ async function afterLoadersResolve(
 		return;
 	}
 	try {
-		await Promise.all(loaders);
+		await Promise.race([
+			Promise.all(loaders),
+			new Promise<void>((resolve) => {
+				window.setTimeout(resolve, REVEAL_MAX_WAIT_MS);
+			})
+		]);
 	} catch {
 		/* still reveal */
 	}
@@ -134,7 +148,7 @@ export const mediaLoadReveal: Action<HTMLElement> = (node) => {
 
 	const finish = async () => {
 		if (cancelled) return;
-		if (skipHomeLoadCurtain()) {
+		if (preferInstantReveal()) {
 			markLoadedNoAnim(node);
 			return;
 		}
@@ -160,33 +174,14 @@ function getStripRevealHosts(placeholders: HTMLElement): HTMLElement[] {
 	return [...row, ...ux];
 }
 
-/**
- * Home strip (P1–P4): one gate for loaders + optional first-visit curtain, then synced `data-media-loaded`.
- */
+/** Home strip (P1–P4): one gate for loaders, then synced `data-media-loaded`. */
 export const stripMediaLoadReveal: Action<HTMLElement> = (node) => {
 	let cancelled = false;
 	const isCancelled = () => cancelled;
 
-	let firstVisitCurtainHandoff = false;
-	if (browser) {
-		try {
-			firstVisitCurtainHandoff = sessionStorage.getItem(APP_CURTAIN_SESSION_KEY) !== '1';
-		} catch {
-			firstVisitCurtainHandoff = false;
-		}
-		if (firstVisitCurtainHandoff) {
-			markLoadedNoAnim(...getStripRevealHosts(node));
-		}
-	}
-
 	const finish = async () => {
 		if (cancelled) return;
-		await waitForInitialCurtainHome();
-		if (cancelled) return;
-		if (firstVisitCurtainHandoff) {
-			return;
-		}
-		if (skipHomeLoadCurtain()) {
+		if (preferInstantReveal()) {
 			markLoadedNoAnim(...getStripRevealHosts(node));
 			return;
 		}
@@ -198,6 +193,56 @@ export const stripMediaLoadReveal: Action<HTMLElement> = (node) => {
 	};
 
 	void afterLoadersResolve(node, isCancelled, finish);
+
+	return {
+		destroy() {
+			cancelled = true;
+		}
+	};
+};
+
+function getPageRevealHosts(root: HTMLElement): HTMLElement[] {
+	const hosts = root.querySelectorAll<HTMLElement>(
+		[
+			'.page-main__placeholders > .page-main__cs-link',
+			'.page-main__ux-panel-wrap .page-main__cs-link--ux-panel',
+			'.page-main__placeholder-5',
+			'.page-main__placeholder-6',
+			'.page-main__placeholder-7',
+			'.page-main__placeholder-8',
+			'.page-main__placeholder-9',
+			'.page-main__placeholder-10',
+			'.page-main__placeholder-11'
+		].join(', ')
+	);
+	return [...hosts];
+}
+
+/** Home page: reveal all placeholder hosts in one synchronized wave. */
+export const pageMediaLoadReveal: Action<HTMLElement> = (node) => {
+	let cancelled = false;
+
+	const finish = async () => {
+		if (cancelled) return;
+		const hosts = getPageRevealHosts(node);
+		if (hosts.length === 0) return;
+		if (preferInstantReveal()) {
+			markLoadedNoAnim(...hosts);
+			return;
+		}
+		await afterPaint();
+		await new Promise<void>((resolve) => {
+			window.setTimeout(resolve, PAGE_SYNC_REVEAL_DELAY_MS);
+		});
+		if (cancelled) return;
+		for (const h of hosts) h.setAttribute('data-media-loaded', '');
+	};
+
+	void (async () => {
+		await tick();
+		if (cancelled) return;
+		await finish();
+	})();
 
 	return {
 		destroy() {

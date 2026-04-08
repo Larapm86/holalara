@@ -39,7 +39,9 @@
 		return () => window.clearTimeout(id);
 	});
 
-	const listClass = $derived(`cs-list${playListEnter ? ' cs-list--enter' : ''}`);
+	const listClass = $derived(
+		`index-cs__list${playListEnter ? ' index-cs__list--enter' : ''}`
+	);
 
 	onNavigate(async (navigation) => {
 		if (!browser) return;
@@ -49,73 +51,73 @@
 		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
 		await tick();
-		const section = document.getElementById('index');
+		const section = document.querySelector('.index-cs');
 		if (!section) return;
-		section.classList.add('index--exit');
+		section.classList.add('index-cs--exit');
 		await new Promise<void>((r) => setTimeout(r, EXIT_NAV_MS));
 	});
 </script>
 
-<section id="index" aria-labelledby="index-heading" style="--index-cs-total: {COUNT}">
-	<div class="index-nav-spacer" aria-hidden="true"></div>
-	<div class="index-section">
-		<h1 class="index-heading" id="index-heading">Case studies</h1>
+<section class="index-cs" aria-labelledby="index-cs-heading" style="--index-cs-total: {COUNT}">
+	<h1 id="index-cs-heading" class="index-cs__heading">Case studies</h1>
+	<div class="index-cs__nav-spacer" aria-hidden="true"></div>
 
-		{#if phase === 'intro'}
-			<div class="index-intro" aria-hidden="true">
-				{#each INDEX_CASE_STUDIES as _, i (i)}
-					<div
-						class="index-intro-band"
-						style="--intro-i: {i}"
-						onanimationend={(e) => {
-							if (e.target !== e.currentTarget) return;
-							if (i !== 0) return;
-							finishIntro();
-						}}
-					></div>
-				{/each}
-			</div>
-		{:else}
-			<ul class={listClass} aria-label="All case studies">
-				{#each INDEX_CASE_STUDIES as cs, i (cs.href)}
-					<li class="cs-item" style="--index-cs-i: {i}">
-						<a class="cs-link" href={cs.href}>
-							<span class="cs-number" aria-hidden="true"
-								>{String(i + 1).padStart(2, '0')}</span
-							>
-							<span class="cs-title">{cs.title}</span>
-							<span class="cs-company">{cs.subtitle}</span>
-						</a>
-					</li>
-				{/each}
-			</ul>
-		{/if}
-	</div>
+	{#if phase === 'intro'}
+		<div class="index-cs__intro" aria-hidden="true">
+			{#each INDEX_CASE_STUDIES as _, i (i)}
+				<div
+					class="index-cs__intro-band"
+					style="--intro-i: {i}"
+					onanimationend={(e) => {
+						if (e.target !== e.currentTarget) return;
+						/* Last band to finish animating (reverse stagger starts from bottom) */
+						if (i !== 0) return;
+						finishIntro();
+					}}
+				></div>
+			{/each}
+		</div>
+	{:else}
+		<ul class={listClass}>
+			{#each INDEX_CASE_STUDIES as cs, i (cs.href)}
+				<li class="index-cs__item" style="--index-cs-i: {i}">
+					<a class="index-cs__link" href={cs.href}>
+						<span class="index-cs__title">{cs.title}</span>
+						<span class="index-cs__subtitle">{cs.subtitle}</span>
+					</a>
+				</li>
+			{/each}
+		</ul>
+	{/if}
 </section>
 
 <style>
-	/* Column placement: global rules in app.css (`#index` in `.page-main--route .page-main__slot`) */
+	/* Column placement: global rules in app.css (.page-main--route .page-main__slot .index-cs) */
 
-	.index-heading {
-		grid-column: 1 / -1;
-		margin: 0 0 0.25rem;
-		font-size: clamp(1.25rem, 2.5vw, 1.5rem);
-		font-weight: 600;
-		letter-spacing: -0.03em;
-		line-height: 1.2;
-		color: var(--fg);
+	.index-cs__heading {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
 	}
 
-	.index-intro {
+	/* Reverse-stagger “placeholder unload” (bottom band first) before list */
+	.index-cs__intro {
 		display: flex;
 		flex-direction: column;
 		gap: var(--grid-gap, 16px);
 		width: 100%;
 		min-width: 0;
 		grid-column: 1 / -1;
+		grid-row: 2;
 	}
 
-	.index-intro-band {
+	.index-cs__intro-band {
 		height: var(--page-main-row-height, 3.5rem);
 		border-radius: 0;
 		background: color-mix(in srgb, var(--fg) 8%, transparent);
@@ -135,20 +137,20 @@
 		}
 	}
 
-	.cs-list {
+	.index-cs__list {
 		list-style: none;
 		margin: 0;
 		padding: 0;
 	}
 
-	.cs-item {
+	.index-cs__item {
 		margin: 0;
 		padding: 0;
 		opacity: 1;
 		transform: translate3d(0, 0, 0);
 	}
 
-	.cs-list--enter .cs-item {
+	.index-cs__list--enter .index-cs__item {
 		opacity: 0;
 		transform: translate3d(0, 0.75rem, 0);
 		animation: index-cs-line 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -162,7 +164,8 @@
 		}
 	}
 
-	:global(#index.index--exit) .cs-item {
+	/* Leaving index: reverse order of list enter */
+	:global(.index-cs--exit) .index-cs__item {
 		animation: index-cs-line-exit 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 		animation-delay: calc((var(--index-cs-total) - 1 - var(--index-cs-i)) * 0.055s);
 	}
@@ -179,28 +182,25 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.index-intro-band {
+		.index-cs__intro-band {
 			animation: none;
 			opacity: 0;
 		}
 
-		.cs-list--enter .cs-item {
+		.index-cs__list--enter .index-cs__item {
 			animation: none;
 			opacity: 1;
 			transform: none;
 		}
 
-		:global(#index.index--exit) .cs-item {
+		:global(.index-cs--exit) .index-cs__item {
 			animation: none;
 			opacity: 0;
 		}
 	}
 
-	.cs-link {
-		display: grid;
-		grid-template-columns: auto minmax(0, 1fr) auto;
-		align-items: baseline;
-		gap: 0.75rem 1rem;
+	.index-cs__link {
+		display: block;
 		grid-column: 1 / -1;
 		min-height: 0;
 		width: 100%;
@@ -210,32 +210,26 @@
 		transition: opacity 0.22s ease;
 	}
 
-	.cs-link:hover {
+	.index-cs__link:hover {
 		opacity: 0.72;
 	}
 
-	.cs-link:focus-visible {
+	.index-cs__link:focus-visible {
 		outline: 2px solid var(--focus-ring);
 		outline-offset: 4px;
 	}
 
-	.cs-number {
-		font-size: 0.75rem;
-		font-weight: 500;
-		font-variant-numeric: tabular-nums;
-		letter-spacing: 0.02em;
-		color: var(--text-muted);
-	}
-
-	.cs-title {
+	.index-cs__title {
+		display: inline;
 		font-size: 0.875rem;
 		font-weight: 500;
 		letter-spacing: -0.02em;
 		line-height: 1.35;
-		min-width: 0;
 	}
 
-	.cs-company {
+	.index-cs__subtitle {
+		display: inline;
+		margin-left: 0.4rem;
 		font-size: 0.8125rem;
 		font-weight: 400;
 		letter-spacing: -0.02em;

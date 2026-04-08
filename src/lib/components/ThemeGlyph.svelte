@@ -95,6 +95,12 @@
 					<polygon fill={ink} points="12,3.5 20.5,12 12,20.5 3.5,12" />
 				{:else if morphFrom === 'blue'}
 					<polygon fill={ink} points="12,3.5 19.5,7.75 19.5,16.25 12,20.5 4.5,16.25 4.5,7.75" />
+				{:else if morphFrom === 'sky'}
+					<g fill={ink}>
+						<ellipse cx="10.5" cy="12.2" rx="4.2" ry="2.7" />
+						<ellipse cx="14.9" cy="11.6" rx="3.5" ry="2.4" />
+						<ellipse cx="8" cy="11.8" rx="2.5" ry="1.9" />
+					</g>
 				{/if}
 			</g>
 		{/if}
@@ -130,6 +136,12 @@
 					<polygon fill={ink} points="12,3.5 20.5,12 12,20.5 3.5,12" />
 				{:else if theme === 'blue'}
 					<polygon fill={ink} points="12,3.5 19.5,7.75 19.5,16.25 12,20.5 4.5,16.25 4.5,7.75" />
+				{:else if theme === 'sky'}
+					<g fill={ink}>
+						<ellipse cx="10.5" cy="12.2" rx="4.2" ry="2.7" />
+						<ellipse cx="14.9" cy="11.6" rx="3.5" ry="2.4" />
+						<ellipse cx="8" cy="11.8" rx="2.5" ry="1.9" />
+					</g>
 				{/if}
 			</g>
 		{/key}

@@ -1,4 +1,4 @@
-export const THEMES = ['light', 'dark', 'pink', 'blue', 'purple', 'yellow', 'green'] as const;
+export const THEMES = ['light', 'dark', 'sky', 'pink', 'blue', 'purple', 'yellow', 'green'] as const;
 
 export type Theme = (typeof THEMES)[number];
 
@@ -14,7 +14,7 @@ export function nextTheme(current: Theme): Theme {
 }
 
 /** Saturated themes (not light/dark neutrals). */
-export const ACCENT_THEMES = ['pink', 'blue', 'purple', 'yellow', 'green'] as const;
+export const ACCENT_THEMES = ['pink', 'blue', 'purple', 'yellow', 'green', 'sky'] as const;
 
 export function isAccentTheme(theme: Theme): boolean {
 	return (ACCENT_THEMES as readonly Theme[]).includes(theme);

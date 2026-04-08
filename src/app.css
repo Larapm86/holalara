@@ -101,6 +101,21 @@ html[data-theme='dark'] {
 	color-scheme: dark;
 }
 
+html[data-theme='sky'] {
+	--bg: #cfe9ff;
+	--fg: #0a0a0a;
+	--text-muted: #4a6074;
+	--border-subtle: rgba(10, 10, 10, 0.18);
+	--accent-dot: #0a0a0a;
+	--focus-ring: #2563eb;
+	--phone-bezel: color-mix(in srgb, var(--fg) 76%, #1f3a5a 24%);
+	/* Sky glass parameters */
+	--placeholder-lottie-blur: 20px;
+	--placeholder-lottie-saturate: 1.28;
+	--placeholder-lottie-bg: color-mix(in srgb, #ffffff 44%, transparent 56%);
+	color-scheme: light;
+}
+
 /* Accent themes: max saturation; body text matches near-black “bold as black” */
 html[data-theme='pink'] {
 	--bg: #ff7eb3;
@@ -161,7 +176,8 @@ html[data-theme='pink'],
 html[data-theme='blue'],
 html[data-theme='purple'],
 html[data-theme='yellow'],
-html[data-theme='green'] {
+html[data-theme='green'],
+html[data-theme='sky'] {
 	--phone-frame-shadow: 0 4px 18px rgba(0, 0, 0, 0.14);
 	--placeholder-lottie-blur: 20px;
 	--placeholder-lottie-saturate: 1.42;
@@ -173,6 +189,31 @@ html[data-theme='green'] {
 	);
 	--placeholder-cs-frost-duration: 240ms;
 	--placeholder-cs-frost-easing: var(--tv-static-fade-easing-soft);
+}
+
+/* Sky keeps the same glass behavior, but with a whiter veil. */
+html[data-theme='sky'] {
+	--placeholder-lottie-bg: color-mix(in srgb, #ffffff 24%, transparent 76%);
+}
+
+/* Sky theme: visible cloud clusters + subtle film grain */
+html[data-theme='sky'] body {
+	background-image:
+		/* Cloud cluster A */
+		radial-gradient(ellipse 220px 92px at 14% 17%, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0) 66%),
+		radial-gradient(ellipse 190px 84px at 20% 16%, rgba(255, 255, 255, 0.86) 0%, rgba(255, 255, 255, 0) 64%),
+		radial-gradient(ellipse 170px 76px at 9% 18.5%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 62%),
+		/* Cloud cluster B */
+		radial-gradient(ellipse 240px 98px at 74% 14%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 67%),
+		radial-gradient(ellipse 210px 88px at 80% 13%, rgba(255, 255, 255, 0.84) 0%, rgba(255, 255, 255, 0) 65%),
+		radial-gradient(ellipse 180px 80px at 68% 15.5%, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0) 63%),
+		/* Smaller cloud cluster C */
+		radial-gradient(ellipse 170px 74px at 46% 30%, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0) 64%),
+		radial-gradient(ellipse 140px 66px at 51% 29%, rgba(255, 255, 255, 0.66) 0%, rgba(255, 255, 255, 0) 62%),
+		/* Sky tone base */
+		linear-gradient(180deg, #bfe2ff 0%, #cfe9ff 42%, #d8efff 100%);
+	background-size: auto, auto, auto, auto, auto, auto, auto, auto, cover;
+	background-attachment: fixed;
 }
 
 *,
@@ -200,13 +241,13 @@ body {
 		color 0.2s ease;
 }
 
-/* ReadMoreCursor.svelte: hide system cursor when custom dot / Read more follower is active */
+/* ReadMoreCursor.svelte: hide system cursor when custom dot / follower is active */
 html[data-custom-cursor],
 html[data-custom-cursor] body {
 	cursor: none !important;
 }
 
-/* Descendants often set cursor:pointer / help — override so only the dot shows */
+/* Descendants often set cursor:pointer / help — override so only the custom cursor shows */
 html[data-custom-cursor] * {
 	cursor: none !important;
 }
@@ -216,6 +257,33 @@ html[data-custom-cursor] textarea,
 html[data-custom-cursor] select,
 html[data-custom-cursor] [contenteditable='true'] {
 	cursor: text !important;
+}
+
+/* Only hovered link/control changes color while custom cursor is active. */
+html[data-custom-cursor] .cursor-hover-active {
+	color: #ffffff !important;
+	text-shadow: none !important;
+	transition: color 120ms ease;
+}
+
+html[data-custom-cursor][data-theme='dark'] .cursor-hover-active {
+	color: #ffffff !important;
+}
+
+html[data-custom-cursor] .cursor-hover-active *,
+html[data-custom-cursor] .cursor-hover-active svg,
+html[data-custom-cursor] .cursor-hover-active path {
+	color: inherit !important;
+	fill: currentColor !important;
+	stroke: currentColor !important;
+}
+
+
+
+html[data-circle-cursor],
+html[data-circle-cursor] body,
+html[data-circle-cursor] * {
+	cursor: none !important;
 }
 
 /*
@@ -473,9 +541,10 @@ html[data-custom-cursor] [contenteditable='true'] {
 /*
  * /index — cols 6–14 with site subgrid; row rhythm matches home (spacer band + one row per line).
  * Do not use display:contents on <ul> — in several engines <li> never becomes a grid item and all lines collapse.
- * Rows: #index = [nav spacer][.index-section]; each <li.cs-item> is its own row inside the list grid.
+ * Rows: section = [nav spacer][list block]; each <li> is its own row inside the list grid.
+ * Client label is inline immediately after each case study title (same flow; block aligns with Index at col 6).
  */
-.page-main.page-main--route .page-main__slot #index {
+.page-main.page-main--route .page-main__slot .index-cs {
 	grid-column: 6 / -1;
 	min-width: 0;
 	display: grid;
@@ -485,25 +554,14 @@ html[data-custom-cursor] [contenteditable='true'] {
 	align-content: start;
 }
 
-.page-main.page-main--route .page-main__slot #index .index-nav-spacer {
+.page-main.page-main--route .page-main__slot .index-cs__nav-spacer {
 	grid-column: 1 / -1;
 	grid-row: 1;
 	min-height: var(--page-main-row-height);
 	pointer-events: none;
 }
 
-.page-main.page-main--route .page-main__slot #index .index-section {
-	grid-column: 1 / -1;
-	grid-row: 2;
-	min-width: 0;
-	display: grid;
-	grid-template-columns: subgrid;
-	grid-template-rows: auto 1fr;
-	row-gap: var(--grid-gap);
-	align-content: start;
-}
-
-.page-main.page-main--route .page-main__slot #index .cs-list {
+.page-main.page-main--route .page-main__slot .index-cs__list {
 	display: grid;
 	grid-template-columns: subgrid;
 	grid-column: 1 / -1;
@@ -516,7 +574,7 @@ html[data-custom-cursor] [contenteditable='true'] {
 	align-content: start;
 }
 
-.page-main.page-main--route .page-main__slot #index .cs-item {
+.page-main.page-main--route .page-main__slot .index-cs__item {
 	display: grid;
 	grid-template-columns: subgrid;
 	grid-column: 1 / -1;
@@ -527,28 +585,24 @@ html[data-custom-cursor] [contenteditable='true'] {
 }
 
 @supports not (grid-template-columns: subgrid) {
-	.page-main.page-main--route .page-main__slot #index {
+	.page-main.page-main--route .page-main__slot .index-cs {
 		display: block;
 		padding-top: calc(var(--page-main-row-height) + var(--grid-gap));
 		grid-template-rows: none;
 		grid-auto-rows: unset;
 	}
 
-	.page-main.page-main--route .page-main__slot #index .index-nav-spacer {
+	.page-main.page-main--route .page-main__slot .index-cs__nav-spacer {
 		display: none;
 	}
 
-	.page-main.page-main--route .page-main__slot #index .index-section {
-		display: block;
-	}
-
-	.page-main.page-main--route .page-main__slot #index .cs-list {
+	.page-main.page-main--route .page-main__slot .index-cs__list {
 		display: flex;
 		flex-direction: column;
 		gap: var(--grid-gap);
 	}
 
-	.page-main.page-main--route .page-main__slot #index .cs-item {
+	.page-main.page-main--route .page-main__slot .index-cs__item {
 		display: block;
 		min-height: 0;
 	}
@@ -560,31 +614,27 @@ html[data-custom-cursor] [contenteditable='true'] {
 }
 
 @media (max-width: 1024px) {
-	.page-main.page-main--route .page-main__slot #index,
+	.page-main.page-main--route .page-main__slot .index-cs,
 	.page-main.page-main--route .page-main__slot .about-page {
 		grid-column: 1 / -1;
 	}
 
-	.page-main.page-main--route .page-main__slot #index {
+	.page-main.page-main--route .page-main__slot .index-cs {
 		display: block;
 		padding-top: calc(var(--page-main-row-height) + var(--grid-gap));
 	}
 
-	.page-main.page-main--route .page-main__slot #index .index-nav-spacer {
+	.page-main.page-main--route .page-main__slot .index-cs__nav-spacer {
 		display: none;
 	}
 
-	.page-main.page-main--route .page-main__slot #index .index-section {
-		display: block;
-	}
-
-	.page-main.page-main--route .page-main__slot #index .cs-list {
+	.page-main.page-main--route .page-main__slot .index-cs__list {
 		display: flex;
 		flex-direction: column;
 		gap: var(--grid-gap);
 	}
 
-	.page-main.page-main--route .page-main__slot #index .cs-item {
+	.page-main.page-main--route .page-main__slot .index-cs__item {
 		display: block;
 		min-height: 0;
 	}
@@ -1043,7 +1093,7 @@ html[data-custom-cursor] [contenteditable='true'] {
 	visibility: hidden !important;
 }
 
-/* Case study links — custom “Read more” cursor (see ReadMoreCursor.svelte); keyboard gets focus ring */
+/* Case study links — default/native cursor; keyboard gets focus ring */
 .page-main__cs-link {
 	position: relative;
 	display: block;
@@ -1054,9 +1104,185 @@ html[data-custom-cursor] [contenteditable='true'] {
 	text-decoration: none;
 	color: inherit;
 	outline: none;
-	cursor: none;
+	cursor: pointer;
 	touch-action: manipulation;
 	-webkit-tap-highlight-color: transparent;
+}
+
+/* Case-study title + company label above selected placeholder anchors, left aligned. */
+.page-main__cs-meta {
+	position: absolute;
+	left: 0;
+	bottom: calc(100% + 16px);
+	z-index: 40;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	column-gap: 0.4rem;
+	row-gap: 0.2rem;
+	width: max-content;
+	max-width: none;
+	pointer-events: none;
+	opacity: 1;
+	transform: translate3d(0, 0, 0);
+	transition:
+		opacity 0.2s ease,
+		transform 0.2s ease;
+}
+
+.page-main__cs-meta-title {
+	font-size: 12px;
+	font-weight: 300;
+	letter-spacing: -0.02em;
+	line-height: 1.25;
+	font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	color: var(--fg);
+}
+
+.page-main__cs-meta-company {
+	font-size: 12px;
+	font-weight: 300;
+	letter-spacing: -0.02em;
+	line-height: 1.25;
+	font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	color: #6b7280;
+	white-space: nowrap;
+}
+
+/*
+ * Keep panel masking intact for coordinated load reveal.
+ * Only mobile/tablet needs visible overflow for above-panel meta labels.
+ */
+.page-main__cs-link--with-meta {
+	overflow: hidden;
+}
+
+/* Desktop pair titles: let labels use both placeholder widths where possible. */
+.page-main__placeholders > .page-main__cs-link:nth-child(1).page-main__cs-link--with-meta .page-main__cs-meta {
+	/* P1 + P2: 3fr + 2fr with one gap */
+	width: calc(166.6667% + var(--grid-gap));
+}
+
+.page-main__placeholders > .page-main__cs-link:nth-child(4).page-main__cs-link--with-meta .page-main__cs-meta {
+	/* P3 + P4: 4fr + 3fr with one gap */
+	width: calc(175% + var(--grid-gap));
+}
+
+.page-main__strip-band > .page-main__placeholder-5.page-main__cs-link--with-meta .page-main__cs-meta,
+.page-main__body > .page-main__placeholder-7.page-main__cs-link--with-meta .page-main__cs-meta,
+.page-main__body > .page-main__placeholder-9.page-main__cs-link--with-meta .page-main__cs-meta {
+	/* Bands 5/6, 7/8, 9/10 are equal-width pairs */
+	width: calc(200% + var(--grid-gap));
+}
+
+@media (max-width: 1024px) {
+	.page-main__cs-link--with-meta {
+		overflow: visible !important;
+	}
+
+	.page-main__cs-meta {
+		bottom: calc(100% + 12px);
+		width: min(68vw, 22rem);
+		opacity: 1;
+		transform: none;
+	}
+
+	.page-main__cs-meta-title {
+		font-size: 12px;
+	}
+
+	.page-main__cs-meta-company {
+		font-size: 12px;
+	}
+}
+
+/* Desktop: labels appear only on hover/focus of each case-study panel. */
+@media (min-width: 1025px) {
+	.page-main__cs-link--with-meta .page-main__cs-meta {
+		display: none !important;
+	}
+
+	.page-main__cs-meta {
+		width: max-content;
+		max-width: none;
+		flex-wrap: nowrap;
+		column-gap: 12px;
+	}
+
+	/* Desktop production style: black chips with high-contrast mono text. */
+	.page-main__cs-meta-title,
+	.page-main__cs-meta-company {
+		display: inline-flex;
+		align-items: center;
+		background: #0a0a0a;
+		color: #fff;
+		padding: 12px 18px;
+		line-height: 1;
+	}
+
+	.page-main__cs-meta-title::after {
+		content: '↗';
+		margin-left: 12px;
+		font-size: 0.95em;
+	}
+
+	/* Cancel pair-width expansion on desktop; chips should size to content. */
+	.page-main__placeholders > .page-main__cs-link:nth-child(1).page-main__cs-link--with-meta .page-main__cs-meta,
+	.page-main__placeholders > .page-main__cs-link:nth-child(4).page-main__cs-link--with-meta .page-main__cs-meta,
+	.page-main__strip-band > .page-main__placeholder-5.page-main__cs-link--with-meta .page-main__cs-meta,
+	.page-main__body > .page-main__placeholder-7.page-main__cs-link--with-meta .page-main__cs-meta,
+	.page-main__body > .page-main__placeholder-9.page-main__cs-link--with-meta .page-main__cs-meta {
+		width: max-content;
+	}
+
+	.page-main__cs-link--with-meta .page-main__cs-meta {
+		opacity: 0;
+		transform: translate3d(0, 4px, 0);
+	}
+
+	/*
+	 * Reveal labels by case group: hovering any placeholder linked to a case study
+	 * shows the shared title/company label for that case.
+	 */
+	.page-main:has(.page-main__cs-link--a:hover) .page-main__cs-link--a.page-main__cs-link--with-meta .page-main__cs-meta,
+	.page-main:has(.page-main__cs-link--a:focus-within)
+		.page-main__cs-link--a.page-main__cs-link--with-meta
+		.page-main__cs-meta,
+	.page-main:has(.page-main__cs-link--b:hover) .page-main__cs-link--b.page-main__cs-link--with-meta .page-main__cs-meta,
+	.page-main:has(.page-main__cs-link--b:focus-within)
+		.page-main__cs-link--b.page-main__cs-link--with-meta
+		.page-main__cs-meta,
+	.page-main:has(.page-main__cs-link--kwit:hover)
+		.page-main__cs-link--kwit.page-main__cs-link--with-meta
+		.page-main__cs-meta,
+	.page-main:has(.page-main__cs-link--kwit:focus-within)
+		.page-main__cs-link--kwit.page-main__cs-link--with-meta
+		.page-main__cs-meta,
+	.page-main:has(.page-main__cs-link--yazio:hover)
+		.page-main__cs-link--yazio.page-main__cs-link--with-meta
+		.page-main__cs-meta,
+	.page-main:has(.page-main__cs-link--yazio:focus-within)
+		.page-main__cs-link--yazio.page-main__cs-link--with-meta
+		.page-main__cs-meta,
+	.page-main:has(.page-main__cs-link--time-to-value:hover)
+		.page-main__cs-link--time-to-value.page-main__cs-link--with-meta
+		.page-main__cs-meta,
+	.page-main:has(.page-main__cs-link--time-to-value:focus-within)
+		.page-main__cs-link--time-to-value.page-main__cs-link--with-meta
+		.page-main__cs-meta,
+	.page-main:has(.page-main__cs-link--systemic-growth:hover)
+		.page-main__cs-link--systemic-growth.page-main__cs-link--with-meta
+		.page-main__cs-meta,
+	.page-main:has(.page-main__cs-link--systemic-growth:focus-within)
+		.page-main__cs-link--systemic-growth.page-main__cs-link--with-meta
+		.page-main__cs-meta,
+	/* Fallback when hovering/focusing directly on the titled tile */
+	.page-main__cs-link--with-meta:hover .page-main__cs-meta,
+	.page-main__cs-link--with-meta:focus-visible .page-main__cs-meta,
+	.page-main__cs-link--with-meta:focus-within .page-main__cs-meta {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
 }
 
 .page-main__cs-link:focus-visible {
@@ -1269,18 +1495,21 @@ html[data-theme='light'] .page-main__image-placeholder--image {
 
 /* Dark + accents: frosted glass — no outer shadow, no inset top line */
 html[data-theme='dark'] .page-main__image-placeholder--lottie,
+html[data-theme='sky'] .page-main__image-placeholder--lottie,
 html[data-theme='pink'] .page-main__image-placeholder--lottie,
 html[data-theme='blue'] .page-main__image-placeholder--lottie,
 html[data-theme='purple'] .page-main__image-placeholder--lottie,
 html[data-theme='yellow'] .page-main__image-placeholder--lottie,
 html[data-theme='green'] .page-main__image-placeholder--lottie,
 html[data-theme='dark'] .page-main__image-placeholder--media,
+html[data-theme='sky'] .page-main__image-placeholder--media,
 html[data-theme='pink'] .page-main__image-placeholder--media,
 html[data-theme='blue'] .page-main__image-placeholder--media,
 html[data-theme='purple'] .page-main__image-placeholder--media,
 html[data-theme='yellow'] .page-main__image-placeholder--media,
 html[data-theme='green'] .page-main__image-placeholder--media,
 html[data-theme='dark'] .page-main__image-placeholder--image,
+html[data-theme='sky'] .page-main__image-placeholder--image,
 html[data-theme='pink'] .page-main__image-placeholder--image,
 html[data-theme='blue'] .page-main__image-placeholder--image,
 html[data-theme='purple'] .page-main__image-placeholder--image,
@@ -1297,18 +1526,21 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 
 @media (prefers-reduced-transparency: reduce) {
 	html[data-theme='dark'] .page-main__image-placeholder--lottie,
+	html[data-theme='sky'] .page-main__image-placeholder--lottie,
 	html[data-theme='pink'] .page-main__image-placeholder--lottie,
 	html[data-theme='blue'] .page-main__image-placeholder--lottie,
 	html[data-theme='purple'] .page-main__image-placeholder--lottie,
 	html[data-theme='yellow'] .page-main__image-placeholder--lottie,
 	html[data-theme='green'] .page-main__image-placeholder--lottie,
 	html[data-theme='dark'] .page-main__image-placeholder--media,
+	html[data-theme='sky'] .page-main__image-placeholder--media,
 	html[data-theme='pink'] .page-main__image-placeholder--media,
 	html[data-theme='blue'] .page-main__image-placeholder--media,
 	html[data-theme='purple'] .page-main__image-placeholder--media,
 	html[data-theme='yellow'] .page-main__image-placeholder--media,
 	html[data-theme='green'] .page-main__image-placeholder--media,
 	html[data-theme='dark'] .page-main__image-placeholder--image,
+	html[data-theme='sky'] .page-main__image-placeholder--image,
 	html[data-theme='pink'] .page-main__image-placeholder--image,
 	html[data-theme='blue'] .page-main__image-placeholder--image,
 	html[data-theme='purple'] .page-main__image-placeholder--image,

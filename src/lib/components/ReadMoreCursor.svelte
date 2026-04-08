@@ -6,8 +6,8 @@
 	const MIN_WIDTH_PX = 901;
 	/** Default dot / strip anchor reference */
 	const DOT_PX = 14;
-	/** Theme control + links — extra-small interactive affordance */
-	const DOT_PX_COMPACT = 7;
+	/** Theme control + links — expanded square affordance */
+	const DOT_PX_COMPACT = 32;
 	const LABEL_SOBERO = 'Building a 0-to-1 Product';
 	const LABEL_STRATEGY = 'UX Maturity at scale';
 	/** Fifth / sixth placeholder band — same case study route as strip A; distinct cursor copy */
@@ -39,8 +39,6 @@
 	let pointerInsideWindow = $state(false);
 	/** True only when the pointer is over a case-study panel link (not the strip gutter / odd targets) */
 	let overPlaceholdersStrip = $state(false);
-	/** Primary nav / mobile menu — use native cursor so hover-prefetch jank cannot “freeze” the custom follower */
-	let pointerOverSiteNav = $state(false);
 	/** Nav theme, text links, menu — smaller dot (not while case-study pill is open) */
 	let overCompactInteractive = $state(false);
 	let useCustomCursor = $state(false);
@@ -67,6 +65,7 @@
 	);
 
 	let scrambleTimer: ReturnType<typeof setInterval> | undefined;
+	let interactiveEl: Element | null = null;
 
 	/** Walk the hit-test stack so overlays / video layers don’t hide the case-study <a> from elementFromPoint. */
 	function readCaseStudyPairFromPoint(clientX: number, clientY: number): 'a' | 'b' | 'kwit' | 'yazio' | 'ttv' | 'systemic' | null {
@@ -92,22 +91,26 @@
 		return false;
 	}
 
-	/** Theme dot, menu, any link — shrink cursor (case-study strip uses pill instead; excluded there) */
-	function isCompactInteractiveTarget(el: Element | null): boolean {
-		if (!el) return false;
-		if (el.closest('.site-nav')) return false;
-		if (el.closest('.site-nav__theme-dot')) return true;
-		if (el.closest('.site-nav__menu-btn')) return true;
-		if (el.closest('a[href]')) return true;
-		return false;
-	}
-
-	function isPointerOverSiteNav(clientX: number, clientY: number): boolean {
+	function readInteractiveTargetFromPoint(clientX: number, clientY: number): Element | null {
 		const stack = document.elementsFromPoint(clientX, clientY);
 		for (const node of stack) {
 			if (!(node instanceof Element)) continue;
-			if (node.closest('.site-nav')) return true;
+			const target = node.closest(
+				'a[href], button, [role="button"], .site-nav__theme-dot, .site-nav__menu-btn'
+			);
+			if (target) return target;
 		}
+		return null;
+	}
+
+	/** Theme dot, menu, any link — shrink cursor (case-study strip uses pill instead; excluded there) */
+	function isCompactInteractiveTarget(el: Element | null): boolean {
+		if (!el) return false;
+		if (el.closest('.site-nav__theme-dot')) return true;
+		if (el.closest('.site-nav__menu-btn')) return true;
+		if (el.closest('a[href]')) return true;
+		if (el.closest('button')) return true;
+		if (el.closest('[role="button"]')) return true;
 		return false;
 	}
 
@@ -172,7 +175,7 @@
 		if (!browser || typeof document === 'undefined') return;
 		document.documentElement.toggleAttribute(
 			'data-custom-cursor',
-			useCustomCursor && pointerInsideWindow && !pointerOverSiteNav
+			useCustomCursor && pointerInsideWindow
 		);
 	});
 
@@ -214,11 +217,16 @@
 		let hitTestRaf: number | null = null;
 
 		function applyPoint(clientX: number, clientY: number) {
-			pointerOverSiteNav = isPointerOverSiteNav(clientX, clientY);
 			const pair = readCaseStudyPairFromPoint(clientX, clientY);
 			caseStudyPair = pair;
 			overPlaceholdersStrip = pair !== null;
 			overCompactInteractive = !overPlaceholdersStrip && isCompactInteractiveFromPoint(clientX, clientY);
+			const nextInteractive = overPlaceholdersStrip ? null : readInteractiveTargetFromPoint(clientX, clientY);
+			if (interactiveEl !== nextInteractive) {
+				interactiveEl?.classList.remove('cursor-hover-active');
+				nextInteractive?.classList.add('cursor-hover-active');
+				interactiveEl = nextInteractive;
+			}
 			if (pair !== null) {
 				const label = labelForPair(pair);
 				if (!prevOnCaseStudyLink) {
@@ -282,6 +290,8 @@
 
 		return () => {
 			stopScramble();
+			interactiveEl?.classList.remove('cursor-hover-active');
+			interactiveEl = null;
 			if (scrollSyncRaf !== null) cancelAnimationFrame(scrollSyncRaf);
 			if (hitTestRaf !== null) cancelAnimationFrame(hitTestRaf);
 			window.removeEventListener('pointermove', onMove);
@@ -297,7 +307,7 @@
 	});
 </script>
 
-{#if useCustomCursor && pointerInsideWindow && !pointerOverSiteNav}
+{#if useCustomCursor && pointerInsideWindow}
 	<div
 		class="read-more-cursor"
 		class:read-more-cursor--strip={overPlaceholdersStrip}
@@ -339,7 +349,7 @@
 <style>
 	.read-more-cursor {
 		position: fixed;
-		z-index: 10000;
+		z-index: 1;
 		left: 0;
 		top: 0;
 		pointer-events: none;
@@ -369,7 +379,7 @@
 		height: var(--cursor-dot-display, 14px);
 		border-radius: 0;
 		background: var(--fg);
-		box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 38%, transparent);
+		box-shadow: none;
 		opacity: 1;
 		transition:
 			width var(--cursor-dot-resize-out-ms) var(--cursor-dot-resize-ease),
@@ -477,6 +487,11 @@
 		transition:
 			opacity var(--cursor-morph-in-ms) var(--cursor-morph-ease),
 			transform var(--cursor-morph-in-ms) var(--cursor-morph-ease);
+	}
+
+	/* Case-study hover chips must float above content. */
+	.read-more-cursor--strip {
+		z-index: 10000;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

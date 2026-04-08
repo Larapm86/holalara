@@ -3,7 +3,7 @@
 	import whoMark from '$lib/assets/WHO-logo.png';
 	import SoberoStrategyLottie from '$lib/components/SoberoStrategyLottie.svelte';
 	import SiteFooter from '$lib/components/SiteFooter.svelte';
-	import { mediaLoadReveal, stripMediaLoadReveal } from '$lib/actions/mediaLoadReveal';
+	import { pageMediaLoadReveal } from '$lib/actions/mediaLoadReveal';
 	import { portfolioScrollReveal } from '$lib/actions/portfolioScrollReveal';
 
 	/** Case study panel `aria-label` text (matches ReadMoreCursor pill wording where relevant) */
@@ -22,21 +22,25 @@
 </script>
 
 <main class="page-main page-main--portfolio grid-14" use:portfolioScrollReveal>
-	<div class="page-main__body">
+	<div class="page-main__body" use:pageMediaLoadReveal>
 	<div class="page-main__slot grid-14">
 		{@render children()}
 	</div>
 	<div class="page-main__row-spacer" aria-hidden="true"></div>
 	<div class="page-main__strip-band">
-	<div class="page-main__placeholders" use:stripMediaLoadReveal>
+	<div class="page-main__placeholders">
 		<a
 			href="{base}/work/zero-to-one"
-			class="page-main__cs-link page-main__cs-link--a"
+			class="page-main__cs-link page-main__cs-link--a page-main__cs-link--with-meta"
 			aria-label="{CASE_STUDY_A_TITLE} — open full case study"
 		>
 			<div class="page-main__image-placeholder page-main__image-placeholder--lottie" aria-hidden="true">
 				<SoberoStrategyLottie file="sobero-cover-4.json" ariaLabel="" fit="contain" />
 			</div>
+			<span class="page-main__cs-meta" aria-hidden="true">
+				<span class="page-main__cs-meta-title">{CASE_STUDY_A_TITLE}</span>
+				<span class="page-main__cs-meta-company">Sobero</span>
+			</span>
 		</a>
 		<a
 			href="{base}/work/zero-to-one"
@@ -60,12 +64,16 @@
 		<div class="page-main__placeholders-gap" aria-hidden="true"></div>
 		<a
 			href="{base}/work/ux-maturity"
-			class="page-main__cs-link page-main__cs-link--b"
+			class="page-main__cs-link page-main__cs-link--b page-main__cs-link--with-meta"
 			aria-label="{CASE_STUDY_B_TITLE} — open full case study"
 		>
 			<div class="page-main__image-placeholder page-main__image-placeholder--image" aria-hidden="true">
 				<SoberoStrategyLottie file="sobero-strategy01-2.json" ariaLabel="" fit="contain" />
 			</div>
+			<span class="page-main__cs-meta" aria-hidden="true">
+				<span class="page-main__cs-meta-title">{CASE_STUDY_B_TITLE}</span>
+				<span class="page-main__cs-meta-company">Kwit</span>
+			</span>
 		</a>
 		<!--
 			Wrap link + WHO stamp: the link keeps overflow:hidden like other strip cells so the
@@ -102,19 +110,21 @@
 	<div class="page-main__row-spacer page-main__row-spacer--strip-fifth" aria-hidden="true"></div>
 	<a
 		href="{base}/work/premium-retention"
-		class="page-main__placeholder-5 page-main__cs-link page-main__cs-link--kwit"
+		class="page-main__placeholder-5 page-main__cs-link page-main__cs-link--kwit page-main__cs-link--with-meta"
 		aria-label={CASE_STUDY_KWIT_BAND_ARIA}
-		use:mediaLoadReveal
 	>
 		<div class="page-main__image-placeholder page-main__image-placeholder--lottie page-main__placeholder-5-panel">
 			<SoberoStrategyLottie file="kwit-next-goal.json" ariaLabel="" fit="contain" />
 		</div>
+		<span class="page-main__cs-meta" aria-hidden="true">
+			<span class="page-main__cs-meta-title">Improving premium user retention</span>
+			<span class="page-main__cs-meta-company">Kwit</span>
+		</span>
 	</a>
 	<a
 		href="{base}/work/premium-retention"
 		class="page-main__placeholder-6 page-main__cs-link page-main__cs-link--kwit"
 		aria-label={CASE_STUDY_KWIT_BAND_ARIA}
-		use:mediaLoadReveal
 	>
 		<div class="page-main__image-placeholder page-main__image-placeholder--lottie page-main__placeholder-6-panel"></div>
 	</a>
@@ -122,45 +132,52 @@
 	<div class="page-main__row-spacer page-main__row-spacer--after-kwit" aria-hidden="true"></div>
 	<a
 		href="{base}/work/habit-loops"
-		class="page-main__placeholder-7 page-main__cs-link page-main__cs-link--yazio"
+		class="page-main__placeholder-7 page-main__cs-link page-main__cs-link--yazio page-main__cs-link--with-meta"
 		aria-label={CASE_STUDY_YAZIO_BAND_ARIA}
-		use:mediaLoadReveal
 	>
 		<div class="page-main__image-placeholder page-main__image-placeholder--lottie page-main__placeholder-7-panel"></div>
+		<span class="page-main__cs-meta" aria-hidden="true">
+			<span class="page-main__cs-meta-title">Designing meaningful habit loops</span>
+			<span class="page-main__cs-meta-company">Yazio</span>
+		</span>
 	</a>
 	<a
 		href="{base}/work/habit-loops"
 		class="page-main__placeholder-8 page-main__cs-link page-main__cs-link--yazio"
 		aria-label={CASE_STUDY_YAZIO_BAND_ARIA}
-		use:mediaLoadReveal
 	>
 		<div class="page-main__image-placeholder page-main__image-placeholder--lottie page-main__placeholder-8-panel"></div>
 	</a>
 	<div class="page-main__row-spacer page-main__row-spacer--lower-bands" aria-hidden="true"></div>
 	<a
 		href="{base}/work/time-to-value"
-		class="page-main__placeholder-9 page-main__cs-link page-main__cs-link--time-to-value"
+		class="page-main__placeholder-9 page-main__cs-link page-main__cs-link--time-to-value page-main__cs-link--with-meta"
 		aria-label={CASE_STUDY_TTV_BAND_ARIA}
-		use:mediaLoadReveal
 	>
 		<div class="page-main__image-placeholder page-main__image-placeholder--lottie page-main__placeholder-9-panel"></div>
+		<span class="page-main__cs-meta" aria-hidden="true">
+			<span class="page-main__cs-meta-title">Accelerating time-to-value</span>
+			<span class="page-main__cs-meta-company">Yazio</span>
+		</span>
 	</a>
 	<a
 		href="{base}/work/time-to-value"
 		class="page-main__placeholder-10 page-main__cs-link page-main__cs-link--time-to-value"
 		aria-label={CASE_STUDY_TTV_BAND_ARIA}
-		use:mediaLoadReveal
 	>
 		<div class="page-main__image-placeholder page-main__image-placeholder--lottie page-main__placeholder-10-panel"></div>
 	</a>
 	<div class="page-main__mobile-rhythm page-main__mobile-rhythm--before-11" aria-hidden="true"></div>
 	<a
 		href="{base}/work/systemic-growth"
-		class="page-main__placeholder-11 page-main__cs-link page-main__cs-link--systemic-growth"
+		class="page-main__placeholder-11 page-main__cs-link page-main__cs-link--systemic-growth page-main__cs-link--with-meta"
 		aria-label={CASE_STUDY_SYSTEMIC_BAND_ARIA}
-		use:mediaLoadReveal
 	>
 		<div class="page-main__image-placeholder page-main__image-placeholder--lottie page-main__placeholder-11-panel"></div>
+		<span class="page-main__cs-meta" aria-hidden="true">
+			<span class="page-main__cs-meta-title">Assessing systemic growth constraints</span>
+			<span class="page-main__cs-meta-company">Welltech</span>
+		</span>
 	</a>
 	</div>
 	<SiteFooter />
