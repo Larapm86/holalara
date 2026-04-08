@@ -1339,8 +1339,11 @@ html[data-circle-cursor] * {
 .page-main__placeholder-10:not([data-media-loaded]) > :first-child,
 .page-main__placeholder-11:not([data-media-loaded]) > :first-child {
 	transform: translate3d(0, 108%, 0);
+	opacity: 0;
 	will-change: transform;
-	transition: transform var(--page-main-panel-reveal-duration) cubic-bezier(0.16, 1, 0.3, 1);
+	transition:
+		transform var(--page-main-panel-reveal-duration) cubic-bezier(0.16, 1, 0.3, 1),
+		opacity 180ms ease;
 }
 
 .page-main__cs-link[data-media-loaded] > :first-child,
@@ -1352,8 +1355,11 @@ html[data-circle-cursor] * {
 .page-main__placeholder-10[data-media-loaded] > :first-child,
 .page-main__placeholder-11[data-media-loaded] > :first-child {
 	transform: translate3d(0, 0, 0);
+	opacity: 1;
 	will-change: auto;
-	transition: transform var(--page-main-panel-reveal-duration) cubic-bezier(0.16, 1, 0.3, 1);
+	transition:
+		transform var(--page-main-panel-reveal-duration) cubic-bezier(0.16, 1, 0.3, 1),
+		opacity 220ms ease;
 }
 
 .page-main__cs-link[data-media-loaded-noanim] > :first-child,
@@ -1805,12 +1811,9 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 }
 
 .page-main__phone-frame {
-	display: block;
+	display: inline-block;
 	line-height: 0;
 	box-sizing: border-box;
-	/* Reserve phone geometry before video metadata arrives (prevents late layout jump). */
-	width: min(12rem, 100%);
-	aspect-ratio: 9 / 19.5;
 	max-width: min(12rem, 100%);
 	overflow: hidden;
 	border-radius: var(--phone-frame-radius);
@@ -1820,12 +1823,12 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 
 .page-main__image-placeholder__video {
 	display: block;
-	width: 100%;
-	height: 100%;
+	width: auto;
+	height: auto;
 	max-width: 100%;
 	/* Fits padded media cells inside the 4-row strip */
 	max-height: min(calc(4 * var(--page-main-row-height)), 48vh);
-	object-fit: cover;
+	object-fit: contain;
 }
 
 /* Fourth panel (UX maturity): slightly smaller than default; centered in cell */
@@ -1839,7 +1842,6 @@ html[data-theme='green'] .page-main__image-placeholder--image {
 
 .page-main__ux-panel-reveal .page-main__phone-frame {
 	margin-inline: auto;
-	width: min(13rem, 100%);
 	max-width: min(13rem, 100%);
 }
 

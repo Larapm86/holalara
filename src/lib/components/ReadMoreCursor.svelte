@@ -175,7 +175,7 @@
 		if (!browser || typeof document === 'undefined') return;
 		document.documentElement.toggleAttribute(
 			'data-custom-cursor',
-			useCustomCursor && pointerInsideWindow
+			useCustomCursor && pointerInsideWindow && overPlaceholdersStrip
 		);
 	});
 
@@ -307,7 +307,7 @@
 	});
 </script>
 
-{#if useCustomCursor && pointerInsideWindow}
+{#if useCustomCursor && pointerInsideWindow && overPlaceholdersStrip}
 	<div
 		class="read-more-cursor"
 		class:read-more-cursor--strip={overPlaceholdersStrip}
@@ -317,9 +317,7 @@
 		<div class="read-more-cursor__anchor">
 			<span class="read-more-cursor__dot"></span>
 			<div class="read-more-cursor__hud">
-				{#if overPlaceholdersStrip && companyLabel}
-					<span class="read-more-cursor__company">{companyLabel}</span>
-				{/if}
+				<span class="read-more-cursor__company">{companyLabel}</span>
 				<div class="read-more-cursor__pill">
 					<span class="read-more-cursor__pill-inner">{pillText}</span>
 					<span class="read-more-cursor__pill-arrow" aria-hidden="true">
@@ -419,6 +417,12 @@
 		background: var(--fg);
 		color: var(--bg);
 		box-shadow: 0 2px 12px color-mix(in srgb, var(--fg) 22%, transparent);
+		opacity: 0;
+		transform: scaleX(0.94);
+		transform-origin: left center;
+		transition:
+			opacity var(--cursor-morph-out-ms) var(--cursor-morph-out-ease),
+			transform var(--cursor-morph-out-ms) var(--cursor-morph-out-ease);
 	}
 
 	.read-more-cursor__pill {
@@ -482,6 +486,14 @@
 	}
 
 	.read-more-cursor--strip .read-more-cursor__pill {
+		opacity: 1;
+		transform: scaleX(1);
+		transition:
+			opacity var(--cursor-morph-in-ms) var(--cursor-morph-ease),
+			transform var(--cursor-morph-in-ms) var(--cursor-morph-ease);
+	}
+
+	.read-more-cursor--strip .read-more-cursor__company {
 		opacity: 1;
 		transform: scaleX(1);
 		transition:
