@@ -221,10 +221,16 @@ function getPageRevealHosts(root: HTMLElement): HTMLElement[] {
 /** Home page: reveal all placeholder hosts in one synchronized wave. */
 export const pageMediaLoadReveal: Action<HTMLElement> = (node) => {
 	let cancelled = false;
+	const hosts = getPageRevealHosts(node);
+
+	// Enforce pre-reveal baseline immediately (important on client navigations / cached DOM).
+	for (const h of hosts) {
+		h.removeAttribute('data-media-loaded');
+		h.removeAttribute('data-media-loaded-noanim');
+	}
 
 	const finish = async () => {
 		if (cancelled) return;
-		const hosts = getPageRevealHosts(node);
 		if (hosts.length === 0) return;
 		if (preferInstantReveal()) {
 			markLoadedNoAnim(...hosts);
